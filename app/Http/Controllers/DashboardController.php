@@ -1,88 +1,68 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    // ── Shared data for all pages ─────────────────────────────
-    private function sharedData(): array
-    {
-        $years = [2024, 2025, 2026];
-
-        $yearSummary = DB::table('wfp_data')
-            ->select(
-                'year',
-                DB::raw('SUM(budget) as total_budget'),
-                DB::raw('SUM(pi_count) as total_pi'),
-                DB::raw('COUNT(*) as dept_count')
-            )
-            ->groupBy('year')
-            ->orderBy('year')
-            ->get();
-
-        $deptData = [];
-        foreach ($years as $year) {
-            $deptData[$year] = DB::table('wfp_data')
-                ->where('year', $year)
-                ->orderByDesc('budget')
-                ->limit(10)
-                ->get(['department', 'budget', 'pi_count', 'sheet_code']);
-        }
-
-        $allDepts = DB::table('wfp_data')
-            ->orderBy('year')
-            ->orderByDesc('budget')
-            ->get(['year', 'department', 'budget', 'pi_count', 'sheet_code']);
-
-        return compact('yearSummary', 'deptData', 'allDepts');
-    }
-
-    // ── Pages ─────────────────────────────────────────────────
-
     public function index()
     {
-        return Inertia::render('Dashboard', $this->sharedData());
-    }
+        $table = 'wfp_submissions';
 
-    public function budget()
-    {
-        return Inertia::render('Budget', $this->sharedData());
-    }
+        $yearSummary = DB::table($table)
+            ->select('year',
+                DB::raw('SUM(budget_total)    as total_budget'),
+                DB::raw('COUNT(*)             as dept_count'),
+                DB::raw('SUM(budget_fund_101) as total_101'),
+                DB::raw('SUM(budget_fund_164) as total_164'),
+                DB::raw('SUM(budget_fund_161) as total_161'),
+                DB::raw('SUM(budget_fund_163) as total_163'),
+                DB::raw('AVG(budget_total)    as avg_budget'),
+                DB::raw('MAX(budget_total)    as max_budget'))
+            ->groupBy('year')->orderBy('year')->get()
+            ->map(fn($y) => [
+                'year'         => (int) $y->year,
+                'total_budget' => round((float) $y->total_budget, 2),
+                'dept_count'   => (int)  $y->dept_count,
+                'total_101'    => round((float) $y->total_101, 2),
+                'total_164'    => round((float) $y->total_164, 2),
+                'total_161'    => round((float) $y->total_161, 2),
+                'total_163'    => round((float) $y->total_163, 2),
+                'avg_budget'   => round((float) $y->avg_budget, 2),
+                'max_budget'   => round((float) $y->max_budget, 2),
+            ]);
 
-    public function indicators()
-    {
-        return Inertia::render('Indicators', $this->sharedData());
-    }
+        $years    = $yearSummary->pluck('year')->toArray() ?: [2024, 2025, 2026];
+        $deptData = [];
+        foreach ($years as $yr) {
+            $deptData[$yr] = DB::table($table)->where('year', $yr)->orderByDesc('budget_total')->limit(10)->get()
+                ->map(fn($d) => [
+                    'department'      => $d->department,
+                    'sheet_code'      => $d->sheet_code ?? '',
+                    'budget_total'    => round((float) $d->budget_total,    2),
+                    'budget_fund_101' => round((float) $d->budget_fund_101, 2),
+                    'budget_fund_164' => round((float) $d->budget_fund_164, 2),
+                ])->toArray();
+        }
 
-    public function upload()
-    {
-        return Inertia::render('Upload', $this->sharedData());
-    }
+        $allDepts = DB::table($table)->orderBy('year')->orderByDesc('budget_total')->get()
+            ->map(fn($d) => [
+                'id'              => $d->id,
+                'year'            => (int) $d->year,
+                'department'      => $d->department,
+                'sheet_code'      => $d->sheet_code ?? '',
+                'status'          => $d->status,
+                'budget_total'    => round((float) $d->budget_total,    2),
+                'budget_fund_101' => round((float) $d->budget_fund_101, 2),
+                'budget_fund_164' => round((float) $d->budget_fund_164, 2),
+                'budget_fund_161' => round((float) $d->budget_fund_161, 2),
+                'budget_fund_163' => round((float) $d->budget_fund_163, 2),
+            ]);
 
-    public function reports()
-    {
-        return Inertia::render('Reports', $this->sharedData());
+        return Inertia::render('Dashboard', [
+            'yearSummary' => $yearSummary,
+            'deptData'    => $deptData,
+            'allDepts'    => $allDepts,
+        ]);
     }
-
-    public function users()
-    {
-        return Inertia::render('Users', $this->sharedData());
-    }
-
-    public function settings()
-    {
-        return Inertia::render('Settings', $this->sharedData());
-    }
-
-    // ── Future: Process uploaded WFP Excel ───────────────────
-    // public function processUpload(Request $request)
-    // {
-    //     $request->validate(['file' => 'required|mimes:xlsx,xls']);
-    //     // Parse with maatwebsite/excel and seed into wfp_data
-    //     // ...
-    //     return redirect('/')->with('success', 'WFP data uploaded!');
-    // }
 }

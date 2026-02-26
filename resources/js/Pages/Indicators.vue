@@ -78,7 +78,7 @@ const php = v => v !== null ? '₱' + v.toLocaleString('en-PH') : '—'
 
 <template>
   <AppLayout>
-    <template #header-title>Performance Indicators</template>
+    <template #header-title>Performance Indicators </template>
     <template #header-subtitle>PI count, budget efficiency, and department targets</template>
 
     <div class="space-y-6">

@@ -77,7 +77,7 @@ const phpM = v => v ? '₱' + (v / 1_000_000).toFixed(2) + 'M' : '—'
 
 <template>
   <AppLayout>
-    <template #header-title>Budget by Department</template>
+    <template #header-title>Budget by Department </template>
     <template #header-subtitle>Detailed financial breakdown per office</template>
 
     <div class="space-y-6">

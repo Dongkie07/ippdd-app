@@ -1,19 +1,28 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\WfpImportController;
+use App\Http\Controllers\AiInsightsController;
+use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // ── Dashboard ─────────────────────────────────────────────────
-Route::get('/',           [DashboardController::class, 'index']);
-Route::get('/budget',     [DashboardController::class, 'budget']);
-Route::get('/indicators', [DashboardController::class, 'indicators']);
-Route::get('/upload',     [DashboardController::class, 'upload']);
-Route::get('/reports',    [DashboardController::class, 'reports']);
-Route::get('/users',      [DashboardController::class, 'users']);
-Route::get('/settings',   [DashboardController::class, 'settings']);
+Route::get('/', [DashboardController::class, 'index']);
 
-// ── Future: Upload POST endpoint ──────────────────────────────
-Route::post('/upload', [DashboardController::class, 'processUpload']);
+// ── Upload ────────────────────────────────────────────────────
+Route::get('/upload',          [WfpImportController::class, 'index']);
+Route::post('/upload/parse',   [WfpImportController::class, 'parse']);
+Route::post('/upload/confirm', [WfpImportController::class, 'confirm']);
 
-// ── Future: Auth routes ───────────────────────────────────────
-// Route::middleware('auth')->group(function () { ... });
+// ── AI Insights (streaming) ───────────────────────────────────
+Route::get('/ai/analyze', [AiInsightsController::class, 'analyze']);
+
+// ── Export ────────────────────────────────────────────────────
+Route::get('/export/excel', [ExportController::class, 'excel']);
+Route::get('/export/csv',   [ExportController::class, 'csv']);
+
+// ── Stub pages ────────────────────────────────────────────────
+Route::get('/reports',  fn() => Inertia::render('Reports'));
+Route::get('/users',    fn() => Inertia::render('Users'));
+Route::get('/settings', fn() => Inertia::render('Settings'));

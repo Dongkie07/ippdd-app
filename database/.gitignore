@@ -1,1 +1,3 @@
 *.sqlite*
+*WfpDataSeeder.php*
+*WfpImportController.php*

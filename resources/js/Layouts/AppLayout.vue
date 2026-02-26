@@ -13,27 +13,26 @@ const navItems = [
       { label: 'Dashboard',         href: '/',                  icon: 'grid' },
     ]
   },
-  // {
-  //   group: 'Financial',
-  //   items: [
-  //     { label: 'Budget by Department', href: '/budget',         icon: 'chart-bar' },
-  //     { label: 'Performance Indicators', href: '/indicators',   icon: 'target' },
-  //   ]
-  // },
-  // {
-  //   group: 'Management',
-  //   items: [
-  //     { label: 'Upload WFP Data',   href: '/upload',            icon: 'upload' },
-  //     { label: 'Reports & Export',  href: '/reports',           icon: 'document' },
-  //   ]
-  // },
+  {
+     group: 'Financial',
+     items: [
+       { label: 'Budget by Department', href: '/budget',         icon: 'chart-bar' },
+      // { label: 'Performance Indicators', href: '/indicators',   icon: 'target' },
+     ]
+   },
+  {
+  group: 'Management',
+   items: [
+   { label: 'Upload WFP Data',   href: '/upload',            icon: 'upload' },
+   // { label: 'Reports & Export',  href: '/reports',           icon: 'document' },
+    ]
+   },
   // {
   //   group: 'System',
   //   items: [
   //     { label: 'Users & Roles',     href: '/users',             icon: 'users' },
   //     { label: 'Settings',          href: '/settings',          icon: 'settings' },
-  //   ]
-  // },
+  //   ]// },
 ]
 
 const isActive = (href) => {
