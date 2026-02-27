@@ -129,10 +129,6 @@ const rows = computed(() => {
   })
 })
 
-const maxBudget = computed(() =>
-  Math.max(...(rows.value.map(d => d.budget_total ?? d.budget ?? 0)), 1)
-)
-
 const setSort = k => {
   if (sortBy.value === k) sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
   else { sortBy.value = k; sortDir.value = 'desc' }
@@ -146,6 +142,8 @@ const phpM = v => '₱' + (v / 1e6).toFixed(2) + 'M'
 const bget = d => d.budget_total ?? d.budget ?? 0
 const f101 = d => d.budget_fund_101 ?? d.fund_101 ?? 0
 const f164 = d => d.budget_fund_164 ?? d.fund_164 ?? 0
+const f161 = d => d.budget_fund_161 ?? d.fund_161 ?? 0
+const f163 = d => d.budget_fund_163 ?? d.fund_163 ?? 0
 </script>
 
 <template>
@@ -269,7 +267,16 @@ const f164 = d => d.budget_fund_164 ?? d.fund_164 ?? 0
                     Fund 164{{ sortIcon('budget_fund_164') }}
                   </button>
                 </th>
-                <th class="px-6 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400 w-36">Share</th>
+                <th class="text-right px-6 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">
+                  <button @click="setSort('budget_fund_161')" class="hover:text-[#0D2137] ml-auto flex items-center gap-1">
+                    Fund 161{{ sortIcon('budget_fund_161') }}
+                  </button>
+                </th>
+                <th class="text-right px-6 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">
+                  <button @click="setSort('budget_fund_163')" class="hover:text-[#0D2137] ml-auto flex items-center gap-1">
+                    Fund 163{{ sortIcon('budget_fund_163') }}
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -288,16 +295,11 @@ const f164 = d => d.budget_fund_164 ?? d.fund_164 ?? 0
                 <td class="px-6 py-3.5 text-right font-mono text-[12px] text-gray-500">
                   {{ f164(d) > 0 ? php(f164(d)) : '—' }}
                 </td>
-                <td class="px-6 py-3.5">
-                  <div class="flex items-center gap-2">
-                    <div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                      <div class="h-full bg-[#0D2137] rounded-full transition-all duration-700"
-                        :style="{ width: Math.round(bget(d) / maxBudget * 100) + '%' }" />
-                    </div>
-                    <span class="text-[10px] text-gray-400 font-bold tabular-nums w-7 text-right">
-                      {{ Math.round(bget(d) / maxBudget * 100) }}%
-                    </span>
-                  </div>
+                <td class="px-6 py-3.5 text-right font-mono text-[12px] text-gray-500">
+                  {{ f161(d) > 0 ? php(f161(d)) : '—' }}
+                </td>
+                <td class="px-6 py-3.5 text-right font-mono text-[12px] text-gray-500">
+                  {{ f163(d) > 0 ? php(f163(d)) : '—' }}
                 </td>
               </tr>
               <tr v-if="rows.length === 0">
@@ -320,7 +322,12 @@ const f164 = d => d.budget_fund_164 ?? d.fund_164 ?? 0
                 <td class="px-6 py-3.5 text-right font-mono text-[12px] text-gray-500">
                   {{ php(rows.reduce((s, d) => s + f164(d), 0)) }}
                 </td>
-                <td class="px-6 py-3.5" />
+                <td class="px-6 py-3.5 text-right font-mono text-[12px] text-gray-500">
+                  {{ php(rows.reduce((s, d) => s + f161(d), 0)) }}
+                </td>
+                <td class="px-6 py-3.5 text-right font-mono text-[12px] text-gray-500">
+                  {{ php(rows.reduce((s, d) => s + f163(d), 0)) }}
+                </td>
               </tr>
             </tfoot>
           </table>

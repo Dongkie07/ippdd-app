@@ -23,8 +23,8 @@ const savedMessage = ref('')
 
 // ── Computed ──────────────────────────────────────────────────
 const selectedRows = computed(() => previewRows.value.filter(r => r.selected))
-const totalBudget  = computed(() => selectedRows.value.reduce((s, r) => s + parseFloat(r.budget || 0), 0))
-const totalPIs     = computed(() => selectedRows.value.reduce((s, r) => s + parseInt(r.pi_count || 0), 0))
+const totalBudget  = computed(() => selectedRows.value.reduce((s, r) => s + parseFloat(r.budget_total ?? r.budget ?? 0), 0))
+
 
 // ── File pick ─────────────────────────────────────────────────
 const onPick = (e) => {
@@ -97,7 +97,15 @@ const confirmImport = async () => {
 
     try {
         const res = await axios.post('/upload/confirm', {
-            rows:     selectedRows.value.map(({ _editing, sample_pis, ...r }) => r),
+            rows: selectedRows.value.map(({ _editing, sample_pis, pi_count, budget, ...r }) => ({
+                ...r,
+                budget_total:    budget ?? r.budget_total ?? 0,
+                budget_fund_101: r.fund_101 ?? r.budget_fund_101 ?? 0,
+                budget_fund_164: r.fund_164 ?? r.budget_fund_164 ?? 0,
+                budget_fund_161: r.fund_161 ?? r.budget_fund_161 ?? 0,
+                budget_fund_163: r.fund_163 ?? r.budget_fund_163 ?? 0,
+                pi_count: 0,
+            })),
             filename: filename.value,
             _token:   document.querySelector('meta[name=csrf-token]')?.content ?? '',
         })
@@ -381,7 +389,6 @@ const phpM = v => '₱' + (parseFloat(v || 0) / 1e6).toFixed(2) + 'M'
                     <th class="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">Department Name</th>
                     <th class="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400 w-24">Code</th>
                     <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400 w-40">Budget (₱)</th>
-                    <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400 w-20">PIs</th>
                     <th class="px-4 py-3 w-20"></th>
                   </tr>
                 </thead>
@@ -438,20 +445,6 @@ const phpM = v => '₱' + (parseFloat(v || 0) / 1e6).toFixed(2) + 'M'
                         <span v-else class="font-mono font-bold text-[#0D2137] text-[13px]">{{ php(row.budget) }}</span>
                       </td>
 
-                      <!-- PI count (editable) -->
-                      <td class="px-4 py-3.5 text-right">
-                        <input v-if="row._editing"
-                          v-model.number="row.pi_count"
-                          type="number"
-                          @keyup.enter="toggleEdit(i)"
-                          class="w-14 text-center text-[13px] font-bold text-[#0D2137] border-0 border-b-2 border-[#C9A84C] outline-none bg-transparent pb-0.5"
-                        />
-                        <span v-else
-                          class="inline-flex items-center justify-center bg-[#C9A84C]/10 text-[#8B6914] text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-[#C9A84C]/20 min-w-[32px]">
-                          {{ row.pi_count }}
-                        </span>
-                      </td>
-
                       <!-- Edit button -->
                       <td class="px-4 py-3.5 text-center">
                         <button @click="toggleEdit(i)"
@@ -496,9 +489,6 @@ const phpM = v => '₱' + (parseFloat(v || 0) / 1e6).toFixed(2) + 'M'
                     </td>
                     <td class="px-4 py-3.5 text-right font-mono font-extrabold text-[#0D2137]">
                       {{ php(totalBudget) }}
-                    </td>
-                    <td class="px-4 py-3.5 text-right font-extrabold text-[#0D2137]">
-                      {{ totalPIs }}
                     </td>
                     <td />
                   </tr>
