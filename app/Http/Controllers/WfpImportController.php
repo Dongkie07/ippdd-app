@@ -24,7 +24,19 @@ class WfpImportController extends Controller
     public function index()
     {
         return Inertia::render('Upload', [
-            'history' => DB::table('wfp_imports')->orderByDesc('created_at')->limit(10)->get(),
+            'history' => DB::table('wfp_submissions')
+                ->select('year', DB::raw('COUNT(*) as dept_count'), DB::raw('SUM(budget_total) as total_budget'), DB::raw('MAX(created_at) as created_at'))
+                ->groupBy('year')
+                ->orderByDesc('year')
+                ->limit(10)
+                ->get()
+                ->map(fn($r) => [
+                    'filename'     => 'WFP_' . $r->year . '.xlsx',
+                    'year'         => $r->year,
+                    'dept_count'   => $r->dept_count,
+                    'total_budget' => $r->total_budget,
+                    'created_at'   => $r->created_at,
+                ]),
         ]);
     }
 
@@ -115,7 +127,9 @@ class WfpImportController extends Controller
         try {
             // Wipe existing year data
             $ids = DB::table('wfp_submissions')->where('year',$year)->pluck('id');
-            DB::table('wfp_pis')->whereIn('submission_id',$ids)->delete();
+            if (\Illuminate\Support\Facades\Schema::hasTable('wfp_pis') && $ids->count()) {
+                DB::table('wfp_pis')->whereIn('submission_id',$ids)->delete();
+            }
             DB::table('wfp_submissions')->where('year',$year)->delete();
 
             $deptCount = 0;
@@ -130,19 +144,22 @@ class WfpImportController extends Controller
                     'year'            => $year,
                     'no'              => $row['no'] ?? null,
                     'department'      => $row['department'],
-                    'sheet_code'      => strtoupper(substr(preg_replace('/[^A-Za-z0-9]/','', $row['department']),0,20)),
+                    'sheet_code'      => $row['sheet_code'] ?? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/','', $row['department']),0,20)),
                     'status'          => $row['status'] ?? 'Pending',
                     'remarks'         => $row['remarks'] ?? null,
-                    'budget_total'    => (float)($row['budget']   ?? 0),
-                    'budget_fund_101' => (float)($row['fund_101'] ?? 0),
-                    'budget_fund_164' => (float)($row['fund_164'] ?? 0),
-                    'budget_fund_161' => (float)($row['fund_161'] ?? 0),
-                    'budget_fund_163' => (float)($row['fund_163'] ?? 0),
+                    'parent_dept'     => $row['parent_dept'] ?? null,
+                    'is_parent'       => (bool)($row['is_parent'] ?? false),
+                    'budget_total'    => (float)($row['budget_total'] ?? $row['budget'] ?? 0),
+                    'budget_fund_101' => (float)($row['budget_fund_101'] ?? $row['fund_101'] ?? 0),
+                    'budget_fund_164' => (float)($row['budget_fund_164'] ?? $row['fund_164'] ?? 0),
+                    'budget_fund_161' => (float)($row['budget_fund_161'] ?? $row['fund_161'] ?? 0),
+                    'budget_fund_163' => (float)($row['budget_fund_163'] ?? $row['fund_163'] ?? 0),
                     'pi_count'        => count($pis),
                     'created_at'      => $now,
                     'updated_at'      => $now,
                 ]);
 
+                if (\Illuminate\Support\Facades\Schema::hasTable('wfp_pis')) {
                 foreach ($pis as $pi) {
                     DB::table('wfp_pis')->insert([
                         'submission_id'    => $subId,
@@ -158,24 +175,14 @@ class WfpImportController extends Controller
                         'updated_at'       => $now,
                     ]);
                 }
+                } // end if wfp_pis exists
 
                 $deptCount++;
                 $piCount    += count($pis);
-                $totalBudget += (float)($row['budget'] ?? 0);
+                $totalBudget += (float)($row['budget_total'] ?? $row['budget'] ?? 0);
             }
 
             // Log import
-            if (Schema::hasTable('wfp_imports')) {
-                DB::table('wfp_imports')->insert([
-                    'filename'     => $filename,
-                    'year'         => $year,
-                    'dept_count'   => $deptCount,
-                    'total_budget' => $totalBudget,
-                    'imported_by'  => 'Admin',
-                    'created_at'   => $now,
-                    'updated_at'   => $now,
-                ]);
-            }
 
             DB::commit();
             return response()->json(['success'=>true,
@@ -190,15 +197,17 @@ class WfpImportController extends Controller
     // ── Extract budgets from STATUS AND MONITORING sheet ──────
     private function extractBudgets($ws, int $year): array
     {
-        $results     = [];
-        $started     = false;
-        $highestRow  = min((int)$ws->getHighestRow(), 700);
+        $results      = [];
+        $started      = false;
+        $highestRow   = min((int)$ws->getHighestRow(), 700);
+        $currentParent = null;   // name of current parent department
+        $parentKeys    = [];     // track which keys are parents
 
         for ($r = 1; $r <= $highestRow; $r++) {
             $c3 = strtoupper(trim((string)$ws->getCell('C'.$r)->getValue()));
 
             if (!$started) {
-                if (str_contains($c3,'NO.') || $c3 === 'NO') { $started = true; }
+                if (str_contains($c3, 'NO.') || $c3 === 'NO') { $started = true; }
                 continue;
             }
 
@@ -207,26 +216,55 @@ class WfpImportController extends Controller
             $status  = trim((string)$ws->getCell('E'.$r)->getValue());
             $remarks = trim((string)$ws->getCell('F'.$r)->getValue());
 
-            // Column layout (0-indexed from A):
-            // G = Total Budget in WFP  H = Tuition  I = Fund101  J = Fund164  K = Fund161  L = Fund163  M = TOTAL
-            $total = $this->num($ws->getCell('M'.$r)->getCalculatedValue());
+            if (empty($dept) || $dept === 'nan') continue;
 
-            if (empty($dept) || $dept === 'nan' || $total <= 0) continue;
+            // Column layout: I=Fund101 J=Fund164 K=Fund161 L=Fund163 M=TOTAL
+            $total = $this->num($ws->getCell('M'.$r)->getCalculatedValue());
+            $f101  = $this->num($ws->getCell('I'.$r)->getCalculatedValue());
+            $f164  = $this->num($ws->getCell('J'.$r)->getCalculatedValue());
+            $f161  = $this->num($ws->getCell('K'.$r)->getCalculatedValue());
+            $f163  = $this->num($ws->getCell('L'.$r)->getCalculatedValue());
+
+            // Determine hierarchy: numeric NO = parent, letter = child
+            $isParent = preg_match('/^\d+$/', $no);
+            $isChild  = preg_match('/^[a-z]$/i', $no) && !$isParent;
+
+            if ($isParent) {
+                $currentParent = $dept;
+            }
+
+            // Skip rows with no budget AND no children expected
+            if ($total <= 0 && !$isParent) continue;
 
             $key = strtoupper(trim($dept));
+            // Avoid duplicate keys
+            $origKey = $key;
+            $suffix = 0;
+            while (isset($results[$key]) && $results[$key]['parent_dept'] !== ($isChild ? $currentParent : null)) {
+                $suffix++;
+                $key = $origKey . '_' . $suffix;
+            }
+
             $results[$key] = [
-                'no'         => $no,
-                'department' => $dept,
-                'year'       => $year,
-                'status'     => $status ?: 'Pending',
-                'remarks'    => (strlen($remarks) > 2 && $remarks !== 'nan') ? $remarks : '',
-                'fund_101'   => $this->num($ws->getCell('I'.$r)->getCalculatedValue()),
-                'fund_164'   => $this->num($ws->getCell('J'.$r)->getCalculatedValue()),
-                'fund_161'   => $this->num($ws->getCell('K'.$r)->getCalculatedValue()),
-                'fund_163'   => $this->num($ws->getCell('L'.$r)->getCalculatedValue()),
-                'budget'     => $total,
-                'pis'        => [],
+                'no'          => $no,
+                'department'  => $dept,
+                'sheet_code'  => $no,
+                'year'        => $year,
+                'status'      => $status ?: 'Pending',
+                'remarks'     => (strlen($remarks) > 2 && $remarks !== 'nan') ? $remarks : '',
+                'fund_101'    => $f101,
+                'fund_164'    => $f164,
+                'fund_161'    => $f161,
+                'fund_163'    => $f163,
+                'budget'      => $total,
+                'parent_dept' => $isChild ? $currentParent : null,
+                'is_parent'   => (bool)$isParent,
+                'pis'         => [],
             ];
+
+            if ($isParent) {
+                $parentKeys[$key] = true;
+            }
         }
 
         return $results;

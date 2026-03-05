@@ -4,11 +4,15 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WfpImportController;
 use App\Http\Controllers\AiInsightsController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\BudgetController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // ── Dashboard ─────────────────────────────────────────────────
 Route::get('/', [DashboardController::class, 'index']);
+
+// ── Budget breakdown ────────────────────────────────────
+Route::get('/budget', [BudgetController::class, 'index']);
 
 // ── Upload ────────────────────────────────────────────────────
 Route::get('/upload',          [WfpImportController::class, 'index']);

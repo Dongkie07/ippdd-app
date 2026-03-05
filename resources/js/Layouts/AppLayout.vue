@@ -16,7 +16,8 @@ const navItems = [
   {
     group: 'Management',
     items: [
-      { label: 'Upload WFP Data', href: '/upload', icon: 'upload' },
+      { label: 'Upload WFP Data',     href: '/upload',  icon: 'upload' },
+      { label: 'Dept. Breakdown',      href: '/budget',  icon: 'chart-bar' },
     ]
   },
 ]
