@@ -233,8 +233,8 @@ class WfpImportController extends Controller
                 $currentParent = $dept;
             }
 
-            // Skip rows with no budget AND no children expected
-            if ($total <= 0 && !$isParent) continue;
+            // Skip truly empty rows — keep zero-budget offices (they exist, just unfunded)
+            if ($total <= 0 && !$isParent && !$isChild) continue;
 
             $key = strtoupper(trim($dept));
             // Avoid duplicate keys

@@ -113,35 +113,85 @@ const expandAll   = () => { expandedRows.value = new Set(parentRows.value.filter
 const collapseAll = () => { expandedRows.value = new Set() }
 
 // ── Build tree from yoyRows ───────────────────────────────────
-// yoyRows has parent_dept and is_parent fields from DB (2025/2026 data)
 const allRows2025 = computed(() => (props.allByYear?.[2025] ?? []))
+const allRows2026 = computed(() => (props.allByYear?.[2026] ?? []))
 
-// Build lookup: department name -> children (from 2025 data which has parent_dept)
+// Children lookup by parent name (from live DB rows)
 const childrenByParent = computed(() => {
   const map = {}
-  allRows2025.value.forEach(r => {
+  // Use both 2025 and 2026 children, preferring 2026
+  ;[...allRows2025.value, ...allRows2026.value].forEach(r => {
     if (r.parent_dept) {
       const pk = r.parent_dept.toUpperCase()
-      if (!map[pk]) map[pk] = []
-      map[pk].push(r)
+      if (!map[pk]) map[pk] = {}
+      // key by dept name to deduplicate
+      map[pk][r.department.toUpperCase()] = r
     }
   })
-  return map
+  // Convert to arrays
+  const result = {}
+  Object.keys(map).forEach(pk => { result[pk] = Object.values(map[pk]) })
+  return result
 })
+
+// For a parent row, sum its own budget + all children budgets per year
+const parentWithTotals = (r) => {
+  const key = r.department.toUpperCase()
+  const children = childrenByParent.value[key] ?? []
+
+  // Children budgets from allByYear for each year
+  const childSum = (yr) => {
+    const yearRows = (props.allByYear?.[yr] ?? [])
+    return children.reduce((sum, c) => {
+      const match = yearRows.find(y => y.department.toUpperCase() === c.department.toUpperCase())
+      return sum + (match?.budget_total ?? 0)
+    }, 0)
+  }
+
+  const own2024 = r.budget_2024 ?? 0
+  const own2025 = r.budget_2025 ?? 0
+  const own2026 = r.budget_2026 ?? 0
+  const subs2024 = childSum(2024)
+  const subs2025 = childSum(2025)
+  const subs2026 = childSum(2026)
+
+  const combined2025 = own2025 + subs2025
+  const combined2026 = own2026 + subs2026
+  const chgCombined = combined2025 > 0 && combined2026 > 0
+    ? Math.round((combined2026 - combined2025) / combined2025 * 1000) / 10
+    : r.chg_25_26
+
+  return {
+    ...r,
+    _isChild: false,
+    _hasChildren: children.length > 0,
+    _childCount: children.length,
+    // Own = what the parent row itself has in the DB
+    _own_2024: own2024,
+    _own_2025: own2025,
+    _own_2026: own2026,
+    // Combined = own + all children
+    _combined_2024: own2024 + subs2024,
+    _combined_2025: combined2025,
+    _combined_2026: combined2026,
+    _chg_combined: chgCombined,
+    // Override display budget fields with combined totals
+    budget_2024: own2024 + subs2024 || r.budget_2024,
+    budget_2025: combined2025 || r.budget_2025,
+    budget_2026: combined2026 || r.budget_2026,
+    chg_25_26:   chgCombined,
+  }
+}
 
 const parentRows = computed(() => {
   const q = search.value.toLowerCase()
   return (props.yoyRows ?? []).filter(r => {
     if (q) return r.department.toLowerCase().includes(q) || r.sheet_code?.toLowerCase().includes(q)
     return true
-  }).map(r => {
-    const key = r.department.toUpperCase()
-    const children = childrenByParent.value[key] ?? []
-    return { ...r, _isChild: false, _hasChildren: children.length > 0, _childCount: children.length }
-  })
+  }).map(r => parentWithTotals(r))
 })
 
-// Flat list interleaving parents + their children for the table
+// Flat list interleaving parents + their children
 const filteredTree = computed(() => {
   const q = search.value.toLowerCase()
   const result = []
@@ -151,19 +201,24 @@ const filteredTree = computed(() => {
       const key = parent.department.toUpperCase()
       const children = childrenByParent.value[key] ?? []
       children.forEach(child => {
-        // Try to find child in yoyRows for YoY data, else use 2025 data
         const yoyChild = (props.yoyRows ?? []).find(y =>
-          y.department.toUpperCase() === child.department.toUpperCase() && y.sheet_code === child.sheet_code
+          y.department.toUpperCase() === child.department.toUpperCase()
         )
-        const merged = yoyChild ?? {
-          department: child.department,
-          sheet_code: child.sheet_code ?? '',
-          budget_2024: null,
-          budget_2025: child.budget_total,
-          budget_2026: null,
-          chg_25_26: null,
-          f101_2026: child.budget_fund_101 ?? 0,
-          f164_2026: child.budget_fund_164 ?? 0,
+        // Get per-year budgets from allByYear for accurate child data
+        const b2024 = (props.allByYear?.[2024] ?? []).find(y => y.department.toUpperCase() === child.department.toUpperCase())?.budget_total ?? null
+        const b2025 = (props.allByYear?.[2025] ?? []).find(y => y.department.toUpperCase() === child.department.toUpperCase())?.budget_total ?? child.budget_total ?? null
+        const b2026 = (props.allByYear?.[2026] ?? []).find(y => y.department.toUpperCase() === child.department.toUpperCase())?.budget_total ?? null
+        const chg = b2025 && b2026 ? Math.round((b2026 - b2025) / b2025 * 1000) / 10 : null
+
+        const merged = {
+          department:  child.department,
+          sheet_code:  child.sheet_code ?? '',
+          budget_2024: b2024,
+          budget_2025: b2025,
+          budget_2026: b2026,
+          chg_25_26:   chg,
+          f101_2026:   child.budget_fund_101 ?? yoyChild?.f101_2026 ?? 0,
+          f164_2026:   child.budget_fund_164 ?? yoyChild?.f164_2026 ?? 0,
         }
         if (!q || merged.department.toLowerCase().includes(q)) {
           result.push({ ...merged, _isChild: true, _parentName: parent.department, _hasChildren: false, _childCount: 0 })
@@ -325,9 +380,31 @@ const tabs = [
                         </span>
                       </div>
                     </td>
-                    <td class="px-4 py-3 text-right font-mono text-gray-400 text-[11px]">{{ r.budget_2024 ? phpM(r.budget_2024) : '—' }}</td>
-                    <td class="px-4 py-3 text-right font-mono text-gray-500 text-[11px]">{{ r.budget_2025 ? phpM(r.budget_2025) : '—' }}</td>
-                    <td class="px-4 py-3 text-right font-mono font-bold text-[#0D2137] text-[12px]">{{ r.budget_2026 ? phpM(r.budget_2026) : '—' }}</td>
+                    <!-- FY 2024 -->
+                    <td class="px-4 py-3 text-right">
+                      <template v-if="r._hasChildren && r._combined_2024 > 0">
+                        <p class="font-mono font-bold text-gray-500 text-[11px]">{{ phpM(r._combined_2024) }}</p>
+                        <p v-if="r._own_2024 > 0" class="font-mono text-[9px] text-gray-300 mt-0.5">own {{ phpM(r._own_2024) }}</p>
+                      </template>
+                      <span v-else class="font-mono text-gray-400 text-[11px]">{{ r.budget_2024 ? phpM(r.budget_2024) : '—' }}</span>
+                    </td>
+                    <!-- FY 2025 -->
+                    <td class="px-4 py-3 text-right">
+                      <template v-if="r._hasChildren && r._combined_2025 > 0">
+                        <p class="font-mono font-bold text-gray-600 text-[11px]">{{ phpM(r._combined_2025) }}</p>
+                        <p v-if="r._own_2025 > 0" class="font-mono text-[9px] text-gray-300 mt-0.5">own {{ phpM(r._own_2025) }}</p>
+                      </template>
+                      <span v-else class="font-mono text-gray-500 text-[11px]">{{ r.budget_2025 ? phpM(r.budget_2025) : '—' }}</span>
+                    </td>
+                    <!-- FY 2026 -->
+                    <td class="px-4 py-3 text-right">
+                      <template v-if="r._hasChildren && r._combined_2026 > 0">
+                        <p class="font-mono font-bold text-[#0D2137] text-[12px]">{{ phpM(r._combined_2026) }}</p>
+                        <p v-if="r._own_2026 > 0" class="font-mono text-[9px] text-gray-400 mt-0.5">own {{ phpM(r._own_2026) }}</p>
+                      </template>
+                      <span v-else class="font-mono font-bold text-[#0D2137] text-[12px]">{{ r.budget_2026 ? phpM(r.budget_2026) : '—' }}</span>
+                    </td>
+                    <!-- Change -->
                     <td class="px-4 py-3 text-right">
                       <span v-if="r.chg_25_26 != null" :class="['text-[11px] font-bold px-2 py-0.5 rounded-full border', trendBg(r.chg_25_26), trendColor(r.chg_25_26)]">{{ pct(r.chg_25_26) }}</span>
                       <span v-else class="text-gray-300 text-[11px]">—</span>
