@@ -12,25 +12,41 @@ class BudgetController extends Controller
         $table = 'wfp_submissions';
         $years = [2024, 2025, 2026];
 
-        // ── 1. All departments per year ───────────────────────
+        // ── 1. All departments per year (combined parent+children) ──
         $allByYear = [];
         foreach ($years as $yr) {
-            $allByYear[$yr] = DB::table($table)
-                ->where('year', $yr)
-                ->orderByDesc('budget_total')
-                ->get()
-                ->map(fn($d) => [
-                    'id'              => $d->id,
-                    'department'      => $d->department,
-                    'sheet_code'      => $d->sheet_code ?? '',
-                    'budget_total'    => round((float) $d->budget_total,    2),
-                    'budget_fund_101' => round((float) $d->budget_fund_101, 2),
-                    'budget_fund_164' => round((float) $d->budget_fund_164, 2),
-                    'budget_fund_161' => round((float) $d->budget_fund_161, 2),
-                    'budget_fund_163' => round((float) $d->budget_fund_163, 2),
-                    'parent_dept'     => $d->parent_dept ?? null,
-                    'is_parent'       => (bool) ($d->is_parent ?? false),
-                ])->toArray();
+            $rawRows = DB::table($table)->where('year', $yr)->get();
+
+            // For each top-level dept, combine own budget + children budgets
+            $parents = $rawRows->filter(fn($r) => !$r->parent_dept);
+            $combined = $parents->map(function($p) use ($rawRows) {
+                $children = $rawRows->filter(fn($r) => $r->parent_dept === $p->department);
+                return [
+                    'id'              => $p->id,
+                    'department'      => $p->department,
+                    'sheet_code'      => $p->sheet_code ?? '',
+                    'budget_total'    => round((float)$p->budget_total + $children->sum('budget_total'), 2),
+                    'own_budget'      => round((float)$p->budget_total, 2),
+                    'budget_fund_101' => round((float)$p->budget_fund_101 + $children->sum('budget_fund_101'), 2),
+                    'budget_fund_164' => round((float)$p->budget_fund_164 + $children->sum('budget_fund_164'), 2),
+                    'budget_fund_161' => round((float)$p->budget_fund_161 + $children->sum('budget_fund_161'), 2),
+                    'budget_fund_163' => round((float)$p->budget_fund_163 + $children->sum('budget_fund_163'), 2),
+                    'parent_dept'     => null,
+                    'is_parent'       => (bool)$p->is_parent,
+                    'children'        => $children->map(fn($c) => [
+                        'department'      => $c->department,
+                        'sheet_code'      => $c->sheet_code ?? '',
+                        'budget_total'    => round((float)$c->budget_total, 2),
+                        'budget_fund_101' => round((float)$c->budget_fund_101, 2),
+                        'budget_fund_164' => round((float)$c->budget_fund_164, 2),
+                        'budget_fund_161' => round((float)$c->budget_fund_161, 2),
+                        'budget_fund_163' => round((float)$c->budget_fund_163, 2),
+                        'parent_dept'     => $c->parent_dept,
+                    ])->values()->toArray(),
+                ];
+            })->sortByDesc('budget_total')->values()->toArray();
+
+            $allByYear[$yr] = $combined;
         }
 
         // ── 2. Year summaries ─────────────────────────────────
