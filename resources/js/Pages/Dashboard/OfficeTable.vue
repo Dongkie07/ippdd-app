@@ -15,7 +15,7 @@
  *     children: [{ department, budget_total, budget_fund_* }] }
  */
 import SectionCard from '@/Components/SectionCard.vue'
-import { ref } from 'vue'
+import { ref,computed } from 'vue'
 import { useFormatters } from '@/composables/useFormatters'
 import { useTableSort }  from '@/composables/useTableSort'
 import { useExpandRows } from '@/composables/useExpandRows'
