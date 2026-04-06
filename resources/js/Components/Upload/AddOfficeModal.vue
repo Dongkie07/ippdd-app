@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { getCurrentInstance } from 'vue' // ← you don't actually need this, remove it
+
+const props = defineProps({           // ← single call, saved to `props`
   show:          { type: Boolean,  required: true },
   newOffice:     { type: Object,   required: true },
   parentOptions: { type: Array,    required: true },
@@ -12,16 +14,8 @@ const emit = defineEmits([
 ])
 
 const update = (field, value) => {
-  emit('update:newOffice', { ...props.newOffice, [field]: value })
+  emit('update:newOffice', { ...props.newOffice, [field]: value })  // ✅ props is defined above
 }
-
-// Need props reference for update()
-import { getCurrentInstance } from 'vue'
-const props = defineProps({
-  show:          { type: Boolean,  required: true },
-  newOffice:     { type: Object,   required: true },
-  parentOptions: { type: Array,    required: true },
-})
 </script>
 
 <template>
