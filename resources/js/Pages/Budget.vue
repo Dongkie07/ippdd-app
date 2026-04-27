@@ -118,33 +118,50 @@ const childrenByParent = computed(() => {
   return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, Object.values(v)]))
 })
 
-// Enrich a parent yoyRow with combined totals (own + children)
+// Enrich a parent yoyRow with combined totals (own + children).
+// Each year's children come from allByYear[yr] directly — this ensures
+// 2025 children and 2026 children are NEVER mixed together.
 const enrichParent = (r) => {
-  const key      = r.department.toUpperCase()
-  const children = childrenByParent.value[key] ?? []
-
-  const childSum = (yr) => {
-    const yearRows = props.allByYear?.[yr] ?? []
-    return children.reduce((sum, c) => {
-      const match = yearRows.find(y => y.department.toUpperCase() === c.department.toUpperCase())
-      return sum + (match?.budget_total ?? 0)
-    }, 0)
+  // Find this dept's row in each year's allByYear data
+  // allByYear[yr] already has budget_total = own + children combined
+  // and own_budget = just the parent's own allocation
+  const findInYear = (yr) => {
+    const name = r.department.toUpperCase()
+    return (props.allByYear?.[yr] ?? []).find(d =>
+      d.department.toUpperCase() === name
+    ) ?? null
   }
 
-  const own2025 = r.budget_2025 ?? 0
-  const own2026 = r.budget_2026 ?? 0
-  const c2025   = own2025 + childSum(2025)
-  const c2026   = own2026 + childSum(2026)
-  const c2024   = (r.budget_2024 ?? 0) + childSum(2024)
-  const chg     = c2025 > 0 && c2026 > 0 ? Math.round((c2026 - c2025) / c2025 * 1000) / 10 : r.chg_25_26
+  const row2024 = findInYear(2024)
+  const row2025 = findInYear(2025)
+  const row2026 = findInYear(2026)
+
+  // combined = budget_total from allByYear (already includes children for that year)
+  const c2024 = row2024?.budget_total ?? r.budget_2024 ?? null
+  const c2025 = row2025?.budget_total ?? r.budget_2025 ?? null
+  const c2026 = row2026?.budget_total ?? r.budget_2026 ?? null
+
+  // own = just the parent row's own budget (no children)
+  const own2024 = row2024?.own_budget ?? r.budget_2024 ?? 0
+  const own2025 = row2025?.own_budget ?? r.budget_2025 ?? 0
+  const own2026 = row2026?.own_budget ?? r.budget_2026 ?? 0
+
+  const chg = (c2025 && c2026)
+    ? Math.round((c2026 - c2025) / c2025 * 1000) / 10
+    : r.chg_25_26
+
+  // Children for display — use the most recent year that has them
+  const children = row2026?.children ?? row2025?.children ?? []
 
   return {
     ...r,
-    _isChild: false, _hasChildren: children.length > 0, _childCount: children.length,
-    _own_2024: r.budget_2024 ?? 0, _own_2025: own2025, _own_2026: own2026,
+    _isChild: false,
+    _hasChildren: children.length > 0,
+    _childCount:  children.length,
+    _own_2024: own2024, _own_2025: own2025, _own_2026: own2026,
     _combined_2024: c2024, _combined_2025: c2025, _combined_2026: c2026,
-    budget_2024: c2024 || r.budget_2024, budget_2025: c2025 || r.budget_2025,
-    budget_2026: c2026 || r.budget_2026, chg_25_26: chg,
+    budget_2024: c2024, budget_2025: c2025, budget_2026: c2026,
+    chg_25_26: chg,
   }
 }
 
@@ -162,16 +179,48 @@ const filteredTree = computed(() => {
   parentRows.value.forEach(parent => {
     result.push(parent)
     if (parent._hasChildren) {
-      const key = parent.department.toUpperCase()
-      ;(childrenByParent.value[key] ?? []).forEach(child => {
-        const b2025 = (props.allByYear?.[2025] ?? []).find(y => y.department.toUpperCase() === child.department.toUpperCase())?.budget_total ?? child.budget_total ?? null
-        const b2026 = (props.allByYear?.[2026] ?? []).find(y => y.department.toUpperCase() === child.department.toUpperCase())?.budget_total ?? null
-        const chg   = b2025 && b2026 ? Math.round((b2026 - b2025) / b2025 * 1000) / 10 : null
+      // Get children from the most recent year available for this parent
+      // Each year's allByYear entry has its own children array — no cross-year mixing
+      const parentName = parent.department.toUpperCase()
+      const row2026 = (props.allByYear?.[2026] ?? []).find(d => d.department.toUpperCase() === parentName)
+      const row2025 = (props.allByYear?.[2025] ?? []).find(d => d.department.toUpperCase() === parentName)
+
+      // Build a unified child list: prefer 2026, fall back to 2025
+      // Show each child's budget per year from its own year's data
+      const allChildren = new Map()
+
+      // Add 2025 children first
+      ;(row2025?.children ?? []).forEach(c => {
+        allChildren.set(c.department.toUpperCase(), {
+          department: c.department, sheet_code: c.sheet_code ?? '',
+          budget_2025: c.budget_total ?? null, budget_2026: null, budget_2024: null,
+          f101_2026: 0, f164_2026: 0,
+        })
+      })
+
+      // Merge / add 2026 children
+      ;(row2026?.children ?? []).forEach(c => {
+        const key = c.department.toUpperCase()
+        const existing = allChildren.get(key) ?? {
+          department: c.department, sheet_code: c.sheet_code ?? '',
+          budget_2025: null, budget_2024: null,
+        }
+        allChildren.set(key, {
+          ...existing,
+          department: c.department, // prefer 2026 name
+          budget_2026: c.budget_total ?? null,
+          f101_2026: c.budget_fund_101 ?? 0,
+          f164_2026: c.budget_fund_164 ?? 0,
+        })
+      })
+
+      allChildren.forEach(child => {
+        const chg = (child.budget_2025 && child.budget_2026)
+          ? Math.round((child.budget_2026 - child.budget_2025) / child.budget_2025 * 1000) / 10
+          : null
         if (!q || child.department.toLowerCase().includes(q)) {
           result.push({
-            department: child.department, sheet_code: child.sheet_code ?? '',
-            budget_2025: b2025, budget_2026: b2026, budget_2024: null, chg_25_26: chg,
-            f101_2026: child.budget_fund_101 ?? 0, f164_2026: child.budget_fund_164 ?? 0,
+            ...child, chg_25_26: chg,
             _isChild: true, _parentName: parent.department, _hasChildren: false, _childCount: 0,
           })
         }

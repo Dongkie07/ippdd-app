@@ -1,57 +1,39 @@
 <script setup>
-import DepartmentRow  from '@/Components/Upload/DepartmentRow.vue'
+import DepartmentRow   from '@/Components/Upload/DepartmentRow.vue'
 import MoveParentPopup from '@/Components/Upload/MoveParentPopup.vue'
 
-defineProps({
-  groupedRows:    { type: Array,    required: true },
-  previewRows:    { type: Array,    required: true },
-  selectedRows:   { type: Array,    required: true },
-  totalBudget:    { type: Number,   required: true },
-  parentOptions:  { type: Array,    required: true },
-  dragRow:        { type: Object,   default: null },
-  dragOver:       { type: String,   default: null },
-  dragOverPos:    { type: String,   default: null },
-  showMovePopup:  { type: Boolean,  required: true },
-  moveTarget:     { type: Object,   default: null },
-  php:            { type: Function, required: true },
+// ── Props ─────────────────────────────────────────────────────
+// defineProps is a compiler macro — no import needed, call once only
+const props = defineProps({
+  groupedRows:   { type: Array,    required: true },
+  previewRows:   { type: Array,    required: true },
+  selectedRows:  { type: Array,    required: true },
+  totalBudget:   { type: Number,   required: true },
+  parentOptions: { type: Array,    required: true },
+  dragRow:       { type: Object,   default: null  },
+  dragOver:      { type: String,   default: null  },
+  dragOverPos:   { type: String,   default: null  },
+  showMovePopup: { type: Boolean,  required: true },
+  moveTarget:    { type: Object,   default: null  },
+  php:           { type: Function, required: true },
 })
 
+// ── Emits ─────────────────────────────────────────────────────
 const emit = defineEmits([
-  'toggle-row',
-  'toggle-edit',
-  'select-all',
-  'open-move-popup',
-  'apply-move',
-  'close-move-popup',
-  'remove-from-parent',
-  'open-add-office',
-  'drag-start',
-  'drag-over',
-  'drag-leave',
-  'drop',
-  'drag-end',
+  'toggle-row', 'toggle-edit', 'select-all',
+  'open-move-popup', 'apply-move', 'close-move-popup',
+  'remove-from-parent', 'open-add-office',
+  'drag-start', 'drag-over', 'drag-leave', 'drop', 'drag-end',
   'update-row-field',
 ])
 
+// ── Helpers ───────────────────────────────────────────────────
+// Find the original index of a row inside previewRows
+// (groupedRows is a display-order copy — this maps back to the source array)
 const previewIndex = (row) =>
   props.previewRows.findIndex(
     r => r.department === row.department && r.sheet_code === row.sheet_code
   )
-
-import { defineProps as dp } from 'vue'
-const props = dp({
-  groupedRows:    { type: Array,    required: true },
-  previewRows:    { type: Array,    required: true },
-  selectedRows:   { type: Array,    required: true },
-  totalBudget:    { type: Number,   required: true },
-  parentOptions:  { type: Array,    required: true },
-  dragRow:        { type: Object,   default: null },
-  dragOver:       { type: String,   default: null },
-  dragOverPos:    { type: String,   default: null },
-  showMovePopup:  { type: Boolean,  required: true },
-  moveTarget:     { type: Object,   default: null },
-  php:            { type: Function, required: true },
-})
 </script>
 
 <template>
@@ -61,7 +43,7 @@ const props = dp({
       <!-- Sticky header -->
       <thead class="sticky top-0 bg-white z-10">
         <tr class="border-b-2 border-gray-100">
-          <!-- Select all checkbox -->
+          <!-- Select-all checkbox -->
           <th class="px-5 py-3 w-10">
             <button
               @click="emit('select-all', selectedRows.length < previewRows.length)"
@@ -71,7 +53,8 @@ const props = dp({
                   : selectedRows.length > 0
                     ? 'bg-[#0D2137]/30 border-[#0D2137]/40'
                     : 'border-gray-300']">
-              <svg v-if="selectedRows.length > 0" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <svg v-if="selectedRows.length > 0" class="w-2.5 h-2.5 text-white"
+                fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </button>
@@ -87,7 +70,7 @@ const props = dp({
       <tbody>
         <template v-for="(row, gi) in groupedRows" :key="row.department + row.sheet_code">
 
-          <!-- Drop-above highlight -->
+          <!-- Drop-above highlight bar -->
           <tr v-if="dragOver === row.department && dragOverPos === 'above'"
             class="h-0.5 bg-blue-400 opacity-60" />
 
@@ -114,12 +97,13 @@ const props = dp({
             @update-field="({ field, value }) => emit('update-row-field', { row, field, value })"
           />
 
-          <!-- Drop-below highlight -->
+          <!-- Drop-below highlight bar -->
           <tr v-if="dragOver === row.department && dragOverPos === 'below'"
             class="h-0.5 bg-blue-400 opacity-60" />
+
         </template>
 
-        <!-- Move-to-parent popup row -->
+        <!-- Move-to-parent popup (renders as a table row inline) -->
         <MoveParentPopup
           :show="showMovePopup"
           :move-target="moveTarget"
