@@ -5,6 +5,7 @@ use App\Http\Controllers\WfpImportController;
 use App\Http\Controllers\AiInsightsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\DepartmentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -13,6 +14,15 @@ Route::get('/', [DashboardController::class, 'index']);
 
 // ── Budget breakdown ────────────────────────────────────
 Route::get('/budget', [BudgetController::class, 'index']);
+
+// ── Manual entry (CRUD) ──────────────────────────────────────
+// IMPORTANT: specific routes (/year) must come BEFORE wildcard /{id}
+Route::get('/departments',                  [DepartmentController::class, 'index']);
+Route::post('/departments/year',            [DepartmentController::class, 'storeYear']);
+Route::delete('/departments/year/{year}',   [DepartmentController::class, 'destroyYear']);
+Route::post('/departments',                 [DepartmentController::class, 'store']);
+Route::put('/departments/{id}',             [DepartmentController::class, 'update']);
+Route::delete('/departments/{id}',          [DepartmentController::class, 'destroy']);
 
 // ── Upload ────────────────────────────────────────────────────
 Route::get('/upload',          [WfpImportController::class, 'index']);

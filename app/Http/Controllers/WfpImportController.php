@@ -62,37 +62,58 @@ class WfpImportController extends Controller
             $spreadsheet = $reader->load($path);
             $sheetNames  = $spreadsheet->getSheetNames();
 
-            // ── Locate STATUS sheet and WFP sheet ────────────
+            // ── Locate STATUS AND MONITORING sheet ───────────
+            // Strategy: scan all sheets, pick the one that:
+            //   1. Has "STATUS", "MONITORING", or "GUIDELINE" in its name, AND
+            //   2. Contains "FUND 101" or "STATUS OF COMPLIANCE" in its content
+            // The WFP sheet (WFP 2025, WFP 2026, etc.) is OPTIONAL — used only
+            // for PI extraction which is no longer required. This means any file
+            // that has a STATUS AND MONITORING sheet will parse correctly
+            // regardless of what other sheets exist or what year it is.
             $statusSheet = null;
             $wfpSheet    = null;
 
             foreach ($sheetNames as $sn) {
-                $su = strtoupper($sn);
-                if ($statusSheet === null &&
-                    (str_contains($su,'STATUS') || str_contains($su,'MONITORING') || str_contains($su,'GUIDELINE'))) {
+                $su = strtoupper(trim($sn));
+
+                // Match: STATUS AND MONITORING / GUIDELINES / MONITORING / STATUS
+                if ($statusSheet === null && (
+                    str_contains($su, 'STATUS') ||
+                    str_contains($su, 'MONITORING') ||
+                    str_contains($su, 'GUIDELINE')
+                )) {
                     $ws   = $spreadsheet->getSheetByName($sn);
-                    $peek = $this->sheetText($ws, 50);
-                    if (str_contains($peek,'FUND 101') || str_contains($peek,'STATUS OF COMPLIANCE')) {
+                    $peek = $this->sheetText($ws, 80);
+                    if (str_contains($peek, 'FUND 101') ||
+                        str_contains($peek, 'STATUS OF COMPLIANCE') ||
+                        str_contains($peek, 'BUDGET ALLOCATION')) {
                         $statusSheet = $sn;
                     }
                 }
+
+                // WFP sheet is optional — used for PI extraction only
                 if ($wfpSheet === null && str_contains($su, "WFP {$year}")) {
                     $wfpSheet = $sn;
                 }
             }
 
+            // STATUS sheet is required — everything else is optional
             if (!$statusSheet) {
-                return response()->json(['success'=>false,
-                    'error'=>"No STATUS/MONITORING sheet found. Sheets: ".implode(', ',$sheetNames)], 422);
-            }
-            if (!$wfpSheet) {
-                return response()->json(['success'=>false,
-                    'error'=>"No 'WFP {$year}' sheet found. Sheets: ".implode(', ',$sheetNames)], 422);
+                $sheetList = implode(', ', $sheetNames);
+                return response()->json(['success' => false,
+                    'error' => "Could not find the STATUS AND MONITORING sheet. "
+                             . "Please make sure your file has a sheet named 'STATUS AND MONITORING'. "
+                             . "Sheets found: {$sheetList}"], 422);
             }
 
             // ── Extract data ──────────────────────────────────
+            // Budget data comes from STATUS AND MONITORING only
             $data = $this->extractBudgets($spreadsheet->getSheetByName($statusSheet), $year);
-            $data = $this->extractPIs($spreadsheet->getSheetByName($wfpSheet), $data);
+
+            // PI extraction is optional — only if WFP sheet exists
+            if ($wfpSheet) {
+                $data = $this->extractPIs($spreadsheet->getSheetByName($wfpSheet), $data);
+            }
 
             $preview = array_values(array_map(fn($d) => array_merge($d, ['selected'=>true]), $data));
 
@@ -216,7 +237,9 @@ class WfpImportController extends Controller
             $status  = trim((string)$ws->getCell('E'.$r)->getValue());
             $remarks = trim((string)$ws->getCell('F'.$r)->getValue());
 
+            // Skip empty rows and footnote-length strings (not real dept names)
             if (empty($dept) || $dept === 'nan') continue;
+            if (strlen($dept) > 80) continue;  // footnotes are always very long
 
             // Column layout: I=Fund101 J=Fund164 K=Fund161 L=Fund163 M=TOTAL
             $total = $this->num($ws->getCell('M'.$r)->getCalculatedValue());

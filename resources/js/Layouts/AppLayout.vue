@@ -17,7 +17,8 @@ const navItems = [
     group: 'Management',
     items: [
       { label: 'Upload WFP Data',     href: '/upload',  icon: 'upload' },
-      { label: 'Dept. Breakdown',      href: '/budget',  icon: 'chart-bar' },
+      { label: 'Dept. Breakdown',      href: '/budget',       icon: 'chart-bar' },
+      { label: 'Manual Entry',           href: '/departments',   icon: 'edit' },
     ]
   },
 ]
@@ -68,6 +69,9 @@ const isActive = (href) => {
               <svg v-if="item.icon === 'grid'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                 <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              <svg v-if="item.icon === 'chart-bar'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="17" rx="1"/>
               </svg>
               <svg v-if="item.icon === 'upload'" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                 <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4-4 4M12 4v12"/>
