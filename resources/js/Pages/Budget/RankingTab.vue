@@ -20,6 +20,7 @@ defineProps({
   filteredTree: { type: Array, default: () => [] },
   expandedRows: { type: Array, default: () => [] },
   parentRows:   { type: Array, default: () => [] },
+  years:        { type: Array, default: () => [2024, 2025, 2026] },
 })
 const emit = defineEmits(['toggle', 'expand-all', 'collapse-all', 'update:search'])
 
@@ -60,10 +61,8 @@ const trendBg    = v => v == null ? '' : v > 0 ? 'bg-emerald-50 border-emerald-1
           <tr class="border-b-2 border-gray-100">
             <th class="text-left px-5 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400 w-8">#</th>
             <th class="text-left px-5 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">Department / Office</th>
-            <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">FY 2024</th>
-            <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">FY 2025</th>
-            <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">FY 2026</th>
-            <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">25→26</th>
+            <th v-for="yr in years" :key="yr" class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">FY {{ yr }}</th>
+            <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">{{ years.at(-2) }}→{{ years.at(-1) }}</th>
             <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">F101</th>
             <th class="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">F164</th>
           </tr>

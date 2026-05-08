@@ -10,14 +10,23 @@ class BudgetController extends Controller
     public function index()
     {
         $table = 'wfp_submissions';
-        $years = [2024, 2025, 2026];
+
+        // ── Years: read dynamically from DB ──────────────────────
+        $years = DB::table($table)
+            ->select('year')->groupBy('year')->orderBy('year')
+            ->pluck('year')->map(fn($y) => (int)$y)->toArray();
+
+        if (empty($years)) {
+            return Inertia::render('Budget', [
+                'years' => [], 'allByYear' => [], 'yearTotals' => [],
+                'yoyRows' => [], 'gainers' => [], 'losers' => [], 'fundMix' => [],
+            ]);
+        }
 
         // ── 1. All departments per year (combined parent+children) ──
         $allByYear = [];
         foreach ($years as $yr) {
             $rawRows = DB::table($table)->where('year', $yr)->get();
-
-            // For each top-level dept, combine own budget + children budgets
             $parents = $rawRows->filter(fn($r) => !$r->parent_dept);
             $combined = $parents->map(function($p) use ($rawRows) {
                 $children = $rawRows->filter(fn($r) => $r->parent_dept === $p->department);
@@ -49,7 +58,7 @@ class BudgetController extends Controller
             $allByYear[$yr] = $combined;
         }
 
-        // ── 2. Year summaries ─────────────────────────────────
+        // ── 2. Year summaries ─────────────────────────────────────
         $yearTotals = DB::table($table)
             ->select('year',
                 DB::raw('SUM(budget_total)    as total'),
@@ -58,9 +67,7 @@ class BudgetController extends Controller
                 DB::raw('SUM(budget_fund_164) as f164'),
                 DB::raw('SUM(budget_fund_161) as f161'),
                 DB::raw('SUM(budget_fund_163) as f163'))
-            ->groupBy('year')
-            ->orderBy('year')
-            ->get()
+            ->groupBy('year')->orderBy('year')->get()
             ->keyBy('year')
             ->map(fn($y) => [
                 'year'       => (int) $y->year,
@@ -72,20 +79,11 @@ class BudgetController extends Controller
                 'f163'       => round((float) $y->f163, 2),
             ]);
 
-        // ── 3. YoY changes — match by department name ────────
-        // sheet_code is a positional row number that changes between years
-        // so we match by normalized department name instead.
-        // Known renames between years are handled via $aliases map.
-        // ── Department rename aliases ─────────────────────────
-        // Maps OLD name (any year) → CANONICAL name (latest year).
-        // Add a new entry here whenever a department gets renamed.
+        // ── 3. YoY changes — fully dynamic, no hardcoded years ───
         $aliases = [
-            // 2024/2025 short codes → 2025 full names
             'OVPAA'   => 'OFFICE OF THE VICE PRESIDENT FOR ACADEMIC AFFAIRS',
             'OVPREP'  => 'OFFICE OF THE VICE PRESIDENT FOR RESEARCH, EXTENSION, AND PRODUCTION',
             'OVPAF'   => 'OFFICE OF THE VICE PRESIDENT FOR ADMINISTRATION AND FINANCE',
-
-            // 2025 names → 2026 restructured names
             'RESEARCH'                  => 'RESEARCH DIVISION',
             'EXTENSION'                 => 'EXTENSION DIVISION',
             'EXECUTIVE'                 => 'PRESIDENTIAL AFFAIRS DIVISION',
@@ -103,48 +101,37 @@ class BudgetController extends Controller
             'CURRICULUM'                => 'CURRICULUM AND INSTRUCTION DIVISION',
             'IADS'                      => 'IADS',
             'ITED'                      => 'ITED',
-
-            // 2024 seeder long names → 2025/2026 canonical names
             'OFFICE OF THE VICE PRESIDENT FOR ACADEMIC AFFAIRS'                => 'OVPAA',
             'OFFICE OF THE VICE PRESIDENT FOR RESEARCH, EXTENSION, AND PRODUCTION' => 'OVPREP',
             'OFFICE OF THE VICE PRESIDENT FOR ADMINISTRATION AND FINANCE'      => 'OVPAF',
-            'RESEARCH DIVISION'                                                => 'RESEARCH DIVISION',
-            'EXTENSION DIVISION'                                               => 'EXTENSION DIVISION',
-            'PRODUCTION DIVISION'                                              => 'PRODUCTION DIVISION',
-            'INSTITUTE OF ADVANCE STUDIES'                                     => 'IADS',
-            'INSTITUTE OF COMPUTING'                                           => 'IC',
-            'INSTITUTE OF LEADERSHIP, ENTREPRENEURSHIP, AND GOOD GOVERNANCE'  => 'ILEGG',
-            'INSTITUTE OF TEACHER EDUCATION'                                   => 'ITED',
-            'INSTITUTE OF AQUATIC AND APPLIED SCIENCES'                        => 'IAAS',
-            'FINANCE SERVICES OFFICE'                                          => 'FINANCE SERVICES DIVISION',
-            'OFFICE OF THE STUDENT DEVELOPMENT SERVICES'                       => 'STUDENT DEVELOPMENT AND SERVICES DIVISION',
-            'QUALITY ASSURANCE OFFICE'                                         => 'QUALITY ASSURANCE DIVISION',
-            'PLANNING AND RESOURCE MANAGEMENT OFFICE'                          => 'INSTITUTIONAL PLANNING AND PROJECT DEVELOPMENT DIVISION',
+            'RESEARCH DIVISION'         => 'RESEARCH DIVISION',
+            'EXTENSION DIVISION'        => 'EXTENSION DIVISION',
+            'PRODUCTION DIVISION'       => 'PRODUCTION DIVISION',
+            'INSTITUTE OF ADVANCE STUDIES'    => 'IADS',
+            'INSTITUTE OF COMPUTING'          => 'IC',
+            'INSTITUTE OF LEADERSHIP, ENTREPRENEURSHIP, AND GOOD GOVERNANCE' => 'ILEGG',
+            'INSTITUTE OF TEACHER EDUCATION'  => 'ITED',
+            'INSTITUTE OF AQUATIC AND APPLIED SCIENCES' => 'IAAS',
+            'FINANCE SERVICES OFFICE'   => 'FINANCE SERVICES DIVISION',
+            'OFFICE OF THE STUDENT DEVELOPMENT SERVICES' => 'STUDENT DEVELOPMENT AND SERVICES DIVISION',
+            'QUALITY ASSURANCE OFFICE'  => 'QUALITY ASSURANCE DIVISION',
+            'PLANNING AND RESOURCE MANAGEMENT OFFICE' => 'INSTITUTIONAL PLANNING AND PROJECT DEVELOPMENT DIVISION',
         ];
 
-        // Skip non-department rows (footnotes, remarks picked up by parser)
         $skipPatterns = [
-            'SOME OF THE OFFICES',
-            'TO HAVE AN EFFECTIVE TRACING',
-            'REFERENCES',
-            'CY 20',
-            'PERFORMANCE INDICATORS',
+            'SOME OF THE OFFICES', 'TO HAVE AN EFFECTIVE TRACING',
+            'REFERENCES', 'CY 20', 'PERFORMANCE INDICATORS',
         ];
-        // Reverse map: 2026 name => 2025 name
 
-        // Normalize a department name for matching
         $normalize = fn($name) => strtoupper(trim(preg_replace('/\s+/', ' ', $name)));
 
-        // Build lookup: normalized_name -> data per year
+        // Build lookup: canonical_name -> per-year data
         $byName = [];
         foreach ($years as $yr) {
             foreach ($allByYear[$yr] as $d) {
-                $name = $normalize($d['department']);
+                $name      = $normalize($d['department']);
+                $canonical = $aliases[$name] ?? $name;
 
-                // Apply alias: map old name to canonical (2026) name
-                $canonical = $aliases[$name] ?? $name;  // fall back to name itself if no alias
-
-                // Skip footnotes / remarks rows that the parser accidentally picked up
                 $skip = false;
                 foreach ($skipPatterns as $pattern) {
                     if (str_contains($canonical, $pattern)) { $skip = true; break; }
@@ -157,64 +144,83 @@ class BudgetController extends Controller
                         'department' => $d['department'],
                     ];
                 }
-                // Prefer 2026 department name as the display name
-                if ($yr === 2026) $byName[$canonical]['department'] = $d['department'];
+                // Prefer the latest year's display name
+                if ($yr === max($years)) $byName[$canonical]['department'] = $d['department'];
 
-                $byName[$canonical][$yr]            = $d['budget_total'];
-                $byName[$canonical]['f101_'.$yr]    = $d['budget_fund_101'];
-                $byName[$canonical]['f164_'.$yr]    = $d['budget_fund_164'];
-                $byName[$canonical]['f161_'.$yr]    = $d['budget_fund_161'];
-                $byName[$canonical]['f163_'.$yr]    = $d['budget_fund_163'];
+                // Store all fund fields dynamically
+                $byName[$canonical]["budget_{$yr}"] = $d['budget_total'];
+                $byName[$canonical]["f101_{$yr}"]   = $d['budget_fund_101'];
+                $byName[$canonical]["f164_{$yr}"]   = $d['budget_fund_164'];
+                $byName[$canonical]["f161_{$yr}"]   = $d['budget_fund_161'];
+                $byName[$canonical]["f163_{$yr}"]   = $d['budget_fund_163'];
             }
         }
 
-        // Build YoY rows — only depts present in at least 2025 or 2026
+        $latestYear = max($years);
+        $prevYear   = count($years) >= 2 ? $years[count($years) - 2] : null;
+
         $yoyRows = [];
         foreach ($byName as $canonical => $d) {
-            if (!isset($d[2025]) && !isset($d[2026])) continue;
+            // Must exist in at least the latest or previous year
+            if (!isset($d["budget_{$latestYear}"]) && (!$prevYear || !isset($d["budget_{$prevYear}"]))) continue;
 
-            $b2024 = $d[2024] ?? null;
-            $b2025 = $d[2025] ?? null;
-            $b2026 = $d[2026] ?? null;
+            // ── Build ALL dynamic year fields ──────────────────────
+            $yearFields = [];
+            foreach ($years as $yr) {
+                $yearFields["budget_{$yr}"] = $d["budget_{$yr}"] ?? null;
+                $yearFields["f101_{$yr}"]   = $d["f101_{$yr}"]   ?? 0;
+                $yearFields["f164_{$yr}"]   = $d["f164_{$yr}"]   ?? 0;
+                $yearFields["f161_{$yr}"]   = $d["f161_{$yr}"]   ?? 0;
+                $yearFields["f163_{$yr}"]   = $d["f163_{$yr}"]   ?? 0;
+            }
 
-            $chg2526 = ($b2025 && $b2026)
-                ? round(($b2026 - $b2025) / $b2025 * 100, 1) : null;
-            $chg2425 = ($b2024 && $b2025)
-                ? round(($b2025 - $b2024) / $b2024 * 100, 1) : null;
+            // ── Build change fields for every consecutive year pair ─
+            $changeFields = [];
+            for ($i = 0; $i < count($years) - 1; $i++) {
+                $yr1  = $years[$i];
+                $yr2  = $years[$i + 1];
+                $b1   = $d["budget_{$yr1}"] ?? null;
+                $b2   = $d["budget_{$yr2}"] ?? null;
+                $s1   = substr((string)$yr1, 2);
+                $s2   = substr((string)$yr2, 2);
+                $changeFields["chg_{$s1}_{$s2}"] = ($b1 && $b2)
+                    ? round(($b2 - $b1) / $b1 * 100, 1)
+                    : null;
+            }
 
-            $yoyRows[] = [
-                'sheet_code'  => $d['sheet_code'] ?? '',
-                'department'  => $d['department'],
-                'budget_2024' => $b2024,
-                'budget_2025' => $b2025,
-                'budget_2026' => $b2026,
-                'chg_25_26'   => $chg2526,
-                'chg_24_25'   => $chg2425,
-                'f101_2026'   => $d['f101_2026'] ?? 0,
-                'f164_2026'   => $d['f164_2026'] ?? 0,
-                'f161_2026'   => $d['f161_2026'] ?? 0,
-                'f163_2026'   => $d['f163_2026'] ?? 0,
-            ];
+            $yoyRows[] = array_merge($yearFields, $changeFields, [
+                'sheet_code' => $d['sheet_code'] ?? '',
+                'department' => $d['department'],
+            ]);
         }
 
-        // Sort by 2026 budget desc
-        usort($yoyRows, fn($a,$b) => ($b['budget_2026'] ?? 0) <=> ($a['budget_2026'] ?? 0));
+        // Sort by latest year budget desc
+        usort($yoyRows, fn($a, $b) =>
+            ($b["budget_{$latestYear}"] ?? 0) <=> ($a["budget_{$latestYear}"] ?? 0)
+        );
 
-        // ── 4. Top gainers & losers (2025→2026) ──────────────
-        $withChg = array_filter($yoyRows, fn($r) => $r['chg_25_26'] !== null);
-        usort($withChg, fn($a,$b) => $b['chg_25_26'] <=> $a['chg_25_26']);
+        // ── 4. Top gainers & losers (latest 2 years) ─────────────
+        $chgKey  = $prevYear
+            ? 'chg_' . substr((string)$prevYear, 2) . '_' . substr((string)$latestYear, 2)
+            : null;
+
+        $withChg = $chgKey
+            ? array_filter($yoyRows, fn($r) => ($r[$chgKey] ?? null) !== null)
+            : [];
+
+        usort($withChg, fn($a, $b) => ($b[$chgKey] ?? 0) <=> ($a[$chgKey] ?? 0));
         $withChg = array_values($withChg);
-
         $gainers = array_slice($withChg, 0, 5);
         $losers  = array_slice(array_reverse($withChg), 0, 5);
 
-        // ── 5. Fund mix per dept (2026, top 15) ──────────────
+        // ── 5. Fund mix per dept (latest year, top 15) ───────────
         $fundMix = array_slice(
-            array_filter($yoyRows, fn($r) => $r['budget_2026'] > 0),
+            array_filter($yoyRows, fn($r) => ($r["budget_{$latestYear}"] ?? 0) > 0),
             0, 15
         );
 
         return Inertia::render('Budget', [
+            'years'      => $years,
             'allByYear'  => $allByYear,
             'yearTotals' => $yearTotals,
             'yoyRows'    => array_values($yoyRows),

@@ -9,7 +9,10 @@
  */
 import { useFormatters } from '@/composables/useFormatters'
 
-defineProps({ yearTotals: { type: Object, default: () => ({}) } })
+defineProps({
+  yearTotals: { type: Object, default: () => ({}) },
+  years:      { type: Array,  default: () => [2024, 2025, 2026] },
+})
 
 const { phpM } = useFormatters()
 
@@ -23,7 +26,7 @@ const FUNDS = [
 
 <template>
   <div class="grid grid-cols-3 gap-4">
-    <div v-for="yr in [2024, 2025, 2026]" :key="yr"
+    <div v-for="yr in years" :key="yr"
       class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
       <div class="flex items-center justify-between mb-3">
         <span class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-gray-400">FY {{ yr }}</span>

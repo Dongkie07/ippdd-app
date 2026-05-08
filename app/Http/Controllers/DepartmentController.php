@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Session;
 
 /**
  * DepartmentController
@@ -91,7 +92,7 @@ class DepartmentController extends Controller
     {
         $v = Validator::make($request->all(), $this->rules(true));
         if ($v->fails()) {
-            return response()->json(['success' => false, 'errors' => $v->errors()], 422);
+            return back()->withErrors($v)->withInput();
         }
 
         $data = $v->validated();
@@ -114,8 +115,8 @@ class DepartmentController extends Controller
             'updated_at'      => now(),
         ]);
 
-        return response()->json(['success' => true, 'id' => $id,
-            'message' => "Department '{$data['department']}' added successfully."]);
+        return redirect('/departments')
+            ->with('flash', ['message' => "Department '{$data['department']}' added."]);
     }
 
     // ── PUT /departments/{id} ─────────────────────────────────
@@ -123,12 +124,12 @@ class DepartmentController extends Controller
     {
         $row = DB::table('wfp_submissions')->find($id);
         if (!$row) {
-            return response()->json(['success' => false, 'message' => 'Record not found.'], 404);
+            return back()->withErrors(['id' => 'Record not found.']);
         }
 
         $v = Validator::make($request->all(), $this->rules(false));
         if ($v->fails()) {
-            return response()->json(['success' => false, 'errors' => $v->errors()], 422);
+            return back()->withErrors($v)->withInput();
         }
 
         $data = $v->validated();
@@ -149,8 +150,8 @@ class DepartmentController extends Controller
             'updated_at'      => now(),
         ]);
 
-        return response()->json(['success' => true,
-            'message' => "Department updated successfully."]);
+        return redirect('/departments')
+            ->with('flash', ['message' => 'Department updated successfully.']);
     }
 
     // ── DELETE /departments/{id} ──────────────────────────────
@@ -158,7 +159,7 @@ class DepartmentController extends Controller
     {
         $row = DB::table('wfp_submissions')->find($id);
         if (!$row) {
-            return response()->json(['success' => false, 'message' => 'Record not found.'], 404);
+            return back()->withErrors(['id' => 'Record not found.']);
         }
 
         // Also delete children if this is a parent
@@ -169,8 +170,8 @@ class DepartmentController extends Controller
 
         DB::table('wfp_submissions')->where('id', $id)->delete();
 
-        return response()->json(['success' => true,
-            'message' => "Deleted '{$row->department}' and its sub-offices."]);
+        return redirect('/departments')
+            ->with('flash', ['message' => "Deleted '{$row->department}' and its sub-offices."]);
     }
 
     // ── DELETE /departments/year/{year} ───────────────────────
@@ -178,14 +179,13 @@ class DepartmentController extends Controller
     {
         $count = DB::table('wfp_submissions')->where('year', $year)->count();
         if ($count === 0) {
-            return response()->json(['success' => false,
-                'message' => "No data found for FY {$year}."], 404);
+            return back()->withErrors(['year' => "No data found for FY {$year}."]);
         }
 
         DB::table('wfp_submissions')->where('year', $year)->delete();
 
-        return response()->json(['success' => true,
-            'message' => "All {$count} records for FY {$year} deleted."]);
+        return redirect('/departments')
+            ->with('flash', ['message' => "All {$count} records for FY {$year} deleted."]);
     }
 
     // ── POST /departments/year ────────────────────────────────
@@ -206,8 +206,7 @@ class DepartmentController extends Controller
 
         // Prevent duplicate year
         if (DB::table('wfp_submissions')->where('year', $newYear)->exists()) {
-            return response()->json(['success' => false,
-                'message' => "FY {$newYear} already exists. Delete it first or upload a new file."], 422);
+            return back()->withErrors(['year' => "FY {$newYear} already exists."]);
         }
 
         if (!$copyFrom) {
@@ -224,8 +223,8 @@ class DepartmentController extends Controller
                 'created_at'   => now(), 'updated_at' => now(),
             ]);
 
-            return response()->json(['success' => true,
-                'message' => "FY {$newYear} created. Add departments manually or upload a WFP file."]);
+            return redirect('/departments')
+                ->with('flash', ['message' => "FY {$newYear} created successfully."]);
         }
 
         // Copy structure from copyFrom year (zero out all budgets)
@@ -233,8 +232,7 @@ class DepartmentController extends Controller
             ->orderBy('id')->get();
 
         if ($source->isEmpty()) {
-            return response()->json(['success' => false,
-                'message' => "FY {$copyFrom} has no data to copy from."], 422);
+            return back()->withErrors(['copy_from' => "FY {$copyFrom} has no data to copy from."]);
         }
 
         $now  = now();
@@ -262,7 +260,7 @@ class DepartmentController extends Controller
             DB::table('wfp_submissions')->insert($chunk);
         }
 
-        return response()->json(['success' => true,
-            'message' => "FY {$newYear} created with {$source->count()} departments copied from FY {$copyFrom} (budgets set to ₱0)."]);
+        return redirect('/departments')
+            ->with('flash', ['message' => "FY {$newYear} created with {$source->count()} departments from FY {$copyFrom}."]);
     }
 }

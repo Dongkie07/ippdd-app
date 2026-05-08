@@ -3,8 +3,8 @@
  * Pages/Departments.vue — Manual Data Entry
  * Full CRUD: add, edit, delete departments + fiscal year management
  */
-import { ref, computed } from 'vue'
-import { router }        from '@inertiajs/vue3'
+import { ref, computed, watch, watchEffect } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AppLayout         from '@/Layouts/AppLayout.vue'
 import { useFormatters } from '@/composables/useFormatters'
 
@@ -15,7 +15,6 @@ const props = defineProps({
 
 const { php, phpM } = useFormatters()
 
-// ── State ─────────────────────────────────────────────────────
 const activeYear    = ref(props.years[0] ?? null)
 const saving        = ref(false)
 const feedback      = ref(null)
@@ -55,53 +54,49 @@ const FUNDS = [
 ]
 
 // ── Helpers ───────────────────────────────────────────────────
-
-// Read CSRF token from meta tag (Laravel injects this in app.blade.php)
-const csrfToken = () =>
-  document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
-
-// Read XSRF-TOKEN from cookie (Laravel sets this automatically)
-const xsrfCookie = () => {
-  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
-  return match ? decodeURIComponent(match[1]) : ''
-}
-
 const toast = (type, message) => {
   feedback.value = { type, message }
   setTimeout(() => feedback.value = null, 4000)
 }
 
-// Refresh page data via Inertia (no full reload)
-const refresh = () => router.visit('/departments', { preserveScroll: true })
+// Flash messages from server (after Inertia redirects)
+const page = usePage()
+// Note: watch is already imported from vue at top of file
+let _watchFlash = null
+// Use onMounted-style approach compatible with <script setup>
+const _unwatch1 = watchEffect(() => {
+  const f = page.props.flash
+  if (f?.message) toast('success', f.message)
+})
 
-// ── Generic fetch helper ──────────────────────────────────────
-const api = async (url, method, body = null) => {
-  // Try cookie first, fall back to meta tag
-  const token = xsrfCookie() || csrfToken()
+// ── Inertia router wrappers ───────────────────────────────────
+// Using Inertia router instead of raw fetch — handles CSRF automatically.
+const inertiaPost = (url, data) => new Promise((resolve) => {
+  router.post(url, data, {
+    preserveScroll: true,
+    onSuccess: ()      => resolve({ success: true }),
+    onError:   (errs)  => resolve({ success: false, errors: errs }),
+    onFinish:  ()      => { saving.value = false },
+  })
+})
 
-  const opts = {
-    method,
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type':     'application/json',
-      'Accept':           'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-      'X-CSRF-TOKEN':     token,
-      'X-XSRF-TOKEN':     token,
-    },
-  }
-  if (body) opts.body = JSON.stringify(body)
+const inertiaPut = (url, data) => new Promise((resolve) => {
+  router.put(url, data, {
+    preserveScroll: true,
+    onSuccess: ()      => resolve({ success: true }),
+    onError:   (errs)  => resolve({ success: false, errors: errs }),
+    onFinish:  ()      => { saving.value = false },
+  })
+})
 
-  const res = await fetch(url, opts)
-
-  // 419 = Laravel CSRF token expired
-  if (res.status === 419) {
-    toast('error', 'Session expired — please refresh the page (F5).')
-    return { success: false, message: 'CSRF token expired.' }
-  }
-
-  return await res.json()
-}
+const inertiaDelete = (url) => new Promise((resolve) => {
+  router.delete(url, {
+    preserveScroll: true,
+    onSuccess: ()      => resolve({ success: true }),
+    onError:   (errs)  => resolve({ success: false, errors: errs }),
+    onFinish:  ()      => { saving.value = false },
+  })
+})
 
 // ── Open forms ────────────────────────────────────────────────
 const openAdd = () => {
@@ -133,73 +128,70 @@ const openEdit = (row) => {
 const submitForm = async () => {
   if (!form.value.department.trim()) return
   saving.value = true
-  try {
-    const isEdit = formMode.value === 'edit'
-    const url    = isEdit ? `/departments/${form.value.id}` : '/departments'
-    const data   = await api(url, isEdit ? 'PUT' : 'POST', form.value)
-    if (data.success) {
-      toast('success', data.message)
-      showForm.value = false
-      refresh()
-    } else {
-      const msg = data.errors
-        ? Object.values(data.errors).flat().join(' ')
-        : (data.message ?? 'Unknown error')
-      toast('error', msg)
-    }
-  } catch (e) {
-    toast('error', 'Network error — please try again.')
-  } finally {
-    saving.value = false
+  const isEdit = formMode.value === 'edit'
+  const url    = isEdit ? `/departments/${form.value.id}` : '/departments'
+  const result = isEdit
+    ? await inertiaPut(url, form.value)
+    : await inertiaPost(url, form.value)
+
+  if (result.success) {
+    toast('success', isEdit ? 'Department updated.' : 'Department added.')
+    showForm.value = false
+  } else {
+    const msg = result.errors
+      ? Object.values(result.errors).flat().join(' ')
+      : 'Something went wrong.'
+    toast('error', msg)
   }
+  saving.value = false
 }
 
 // ── Delete department ─────────────────────────────────────────
 const deleteDept = async () => {
   if (!confirmDelete.value?.id) return
   saving.value = true
-  try {
-    const data = await api(`/departments/${confirmDelete.value.id}`, 'DELETE')
-    toast(data.success ? 'success' : 'error', data.message)
+  const result = await inertiaDelete(`/departments/${confirmDelete.value.id}`)
+  if (result.success) {
+    toast('success', 'Department deleted.')
     confirmDelete.value = null
-    if (data.success) refresh()
-  } finally {
-    saving.value = false
+  } else {
+    toast('error', 'Could not delete department.')
   }
+  saving.value = false
 }
 
 // ── Delete year ───────────────────────────────────────────────
 const deleteYear = async () => {
   if (!confirmDelete.value?.year) return
   saving.value = true
-  try {
-    const data = await api(`/departments/year/${confirmDelete.value.year}`, 'DELETE')
-    toast(data.success ? 'success' : 'error', data.message)
+  const yr     = confirmDelete.value.year
+  const result = await inertiaDelete(`/departments/year/${yr}`)
+  if (result.success) {
+    toast('success', `FY ${yr} deleted.`)
     confirmDelete.value = null
-    if (data.success) {
-      activeYear.value = props.years.find(y => y !== confirmDelete.value?.year) ?? null
-      refresh()
-    }
-  } finally {
-    saving.value = false
+    activeYear.value = props.years.find(y => y !== yr) ?? null
+  } else {
+    toast('error', 'Could not delete fiscal year.')
   }
+  saving.value = false
 }
 
 // ── Create new year ───────────────────────────────────────────
 const submitNewYear = async () => {
   if (!newYearForm.value.year) return
   saving.value = true
-  try {
-    const data = await api('/departments/year', 'POST', newYearForm.value)
-    toast(data.success ? 'success' : 'error', data.message)
-    if (data.success) {
-      showYearForm.value = false
-      activeYear.value   = newYearForm.value.year
-      refresh()
-    }
-  } finally {
-    saving.value = false
+  const result = await inertiaPost('/departments/year', newYearForm.value)
+  if (result.success) {
+    toast('success', `FY ${newYearForm.value.year} created successfully.`)
+    showYearForm.value = false
+    activeYear.value   = newYearForm.value.year
+  } else {
+    const msg = result.errors
+      ? Object.values(result.errors).flat().join(' ')
+      : 'Could not create fiscal year.'
+    toast('error', msg)
   }
+  saving.value = false
 }
 
 // ── Style helpers ─────────────────────────────────────────────
