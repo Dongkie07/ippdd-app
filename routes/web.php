@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WfpImportController;
-use App\Http\Controllers\AiInsightsController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DepartmentController;
@@ -28,9 +27,6 @@ Route::delete('/departments/{id}',          [DepartmentController::class, 'destr
 Route::get('/upload',          [WfpImportController::class, 'index']);
 Route::post('/upload/parse',   [WfpImportController::class, 'parse']);
 Route::post('/upload/confirm', [WfpImportController::class, 'confirm']);
-
-// ── AI Insights (streaming) ───────────────────────────────────
-Route::get('/ai/analyze', [AiInsightsController::class, 'analyze']);
 
 // ── Export ────────────────────────────────────────────────────
 Route::get('/export/excel', [ExportController::class, 'excel']);

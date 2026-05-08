@@ -5,7 +5,6 @@
  */
 import { ref, computed, watch } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
-import AiInsightsPanel from '@/Components/AiInsightsPanel.vue'
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement,
   LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler
@@ -107,7 +106,7 @@ const { barData, barOpts, lineData, lineOpts, donutData, donutOpts } =
               Institutional Planning and Project Development Division (IPPDD) Executive Dashboard
             </h2>
             <p class="mt-3 max-w-3xl text-sm font-medium leading-6 text-[#DDFBE8]/85">
-              A cleaner financial command center for tracking WFP allocations, office rankings, fund distribution, and year-over-year movement without forcing humans to stare at spreadsheet. 
+              A cleaner financial monitoring for tracking WFP allocations, office rankings, fund distribution, and year-over-year movement. 
             </p>
           </div>
 
@@ -172,9 +171,6 @@ const { barData, barOpts, lineData, lineOpts, donutData, donutOpts } =
 
       <!-- 3-year trend line -->
       <TrendChart :lineData="lineData" :lineOpts="lineOpts" />
-
-      <!-- AI Insights -->
-      <AiInsightsPanel :year="year" />
 
       <!-- Office breakdown table -->
       <OfficeTable :rows="rows" :year="year" />

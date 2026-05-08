@@ -3,7 +3,7 @@
  * Budget/YearSummaryCards.vue
  * Fiscal-year KPI cards with fund breakdown bars.
  */
-import { FUNDS } from '@/constants/wfp'
+import { FUNDS } from '@/constants/Wfp'
 import { useFormatters } from '@/composables/useFormatters'
 
 defineProps({

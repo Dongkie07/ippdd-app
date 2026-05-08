@@ -6,7 +6,6 @@
 import { computed, ref } from 'vue'
 import { useYoyChart } from '@/composables/useChartConfigs'
 import { useExpandRows } from '@/composables/useExpandRows'
-import { COLORS } from '@/constants/wfp'
 
 export const BUDGET_TABS = [
   { id: 'ranking', label: 'Budget Ranking' },
@@ -14,8 +13,6 @@ export const BUDGET_TABS = [
   { id: 'yoy', label: 'Year Comparison' },
 ]
 
-const moneyTooltip = (context) => `  ₱${Number(context.raw).toLocaleString('en-PH')}`
-const millionTick = (value) => `₱${(value / 1e6).toFixed(0)}M`
 const changeKey = (fromYear, toYear) => `chg_${String(fromYear).slice(2)}_${String(toYear).slice(2)}`
 
 export function useBudgetBreakdown(props) {
@@ -44,60 +41,9 @@ export function useBudgetBreakdown(props) {
 
   const { yoyData: yoyChartData, yoyOpts: yoyChartOpts } = useYoyChart(yoyRowsRef, yearsRef)
 
-  const trendData = computed(() => {
-    const years = yearsRef.value
+  
 
-    return {
-      labels: years.map((year) => `FY ${year}`),
-      datasets: [
-        {
-          label: 'Total Budget',
-          data: years.map((year) => yearTotalsRef.value[year]?.total ?? 0),
-          borderColor: COLORS.navy,
-          backgroundColor: COLORS.navyLight,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 6,
-          borderWidth: 2.5,
-        },
-        {
-          label: 'Fund 101 (GAA)',
-          data: years.map((year) => yearTotalsRef.value[year]?.f101 ?? 0),
-          borderColor: COLORS.gold,
-          backgroundColor: 'transparent',
-          fill: false,
-          tension: 0.3,
-          pointRadius: 4,
-          borderWidth: 2,
-          borderDash: [5, 4],
-        },
-        {
-          label: 'Fund 164 (Fiduciary)',
-          data: years.map((year) => yearTotalsRef.value[year]?.f164 ?? 0),
-          borderColor: COLORS.green,
-          backgroundColor: 'transparent',
-          fill: false,
-          tension: 0.3,
-          pointRadius: 4,
-          borderWidth: 2,
-          borderDash: [3, 3],
-        },
-      ],
-    }
-  })
-
-  const trendOpts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { labels: { color: COLORS.gray, font: { size: 11 }, boxWidth: 12, padding: 16 } },
-      tooltip: { callbacks: { label: moneyTooltip } },
-    },
-    scales: {
-      x: { ticks: { color: COLORS.grayLight }, grid: { color: COLORS.gridLine } },
-      y: { ticks: { color: COLORS.grayLight, callback: millionTick }, grid: { color: COLORS.gridLine } },
-    },
-  }
+  
 
   const findDepartmentInYear = (departmentName, year) => {
     const normalized = departmentName.toUpperCase()
@@ -255,8 +201,6 @@ export function useBudgetBreakdown(props) {
     yearTotalsRef,
     yoyRowsRef,
     yoyChangeKey,
-    trendData,
-    trendOpts,
     yoyChartData,
     yoyChartOpts,
     parentRows,

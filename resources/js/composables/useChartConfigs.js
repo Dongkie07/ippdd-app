@@ -5,7 +5,7 @@
  * All year references are DYNAMIC — no hardcoded 2024/2025/2026.
  */
 import { computed } from 'vue'
-import { COLORS, FUNDS, CHART_SCALE_DEFAULTS } from '@/constants/wfp'
+import { COLORS, FUNDS, CHART_SCALE_DEFAULTS } from '@/constants/Wfp'
 
 // ── Shared tooltip formatter ────────────────────────────────────────
 const pesoLabel = (ctx) => `  ₱${Number(ctx.raw).toLocaleString('en-PH')}`
@@ -127,6 +127,30 @@ export function useLineChart(propsRef) {
           pointBackgroundColor: COLORS.green,
           borderWidth:          2,
           borderDash:           [3, 3],
+        },
+                {
+          label: 'Fund 161',
+          data: ys.map(y => y.total_161 ?? 0),
+          borderColor: COLORS.mint,
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 4,
+          pointBackgroundColor: COLORS.mint,
+          borderWidth: 2,
+          borderDash: [6, 3],
+        },
+        {
+          label: 'Fund 163',
+          data: ys.map(y => y.total_163 ?? 0),
+          borderColor: COLORS.teal,
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 4,
+          pointBackgroundColor: COLORS.teal,
+          borderWidth: 2,
+          borderDash: [2, 4],
         },
       ],
     }
