@@ -37,11 +37,11 @@ const emit = defineEmits([
       'border-b transition-all cursor-grab active:cursor-grabbing',
       row._isChild ? 'border-gray-50 bg-slate-50/50' : 'border-gray-100',
       row.selected
-        ? (row._isChild ? 'hover:bg-blue-50/20' : 'hover:bg-blue-50/30')
+        ? (row._isChild ? 'hover:bg-emerald-50/20' : 'hover:bg-emerald-50/30')
         : 'opacity-40 bg-gray-50/80',
       dragRow?.department === row.department ? 'opacity-30 scale-[0.99]' : '',
       dragOver === row.department && dragOverPos === 'into'
-        ? 'ring-2 ring-inset ring-blue-400 bg-blue-50/40' : '',
+        ? 'ring-2 ring-inset ring-emerald-400 bg-emerald-50/40' : '',
     ]">
 
     <!-- Drag handle + checkbox -->
@@ -55,7 +55,7 @@ const emit = defineEmits([
         <button
           @click.stop="emit('toggle-row', rowIndex)"
           :class="['w-4 h-4 rounded border-2 flex items-center justify-center transition-all',
-            row.selected ? 'bg-[#0D2137] border-[#0D2137]' : 'border-gray-300 bg-white']">
+            row.selected ? 'bg-[#064E3B] border-[#064E3B]' : 'border-gray-300 bg-white']">
           <svg v-if="row.selected" class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
@@ -66,7 +66,7 @@ const emit = defineEmits([
     <!-- Row number -->
     <td class="px-3 py-3 text-gray-300 font-mono text-[10px] font-bold w-8">
       <span v-if="!row._isChild">{{ String(rowIndex + 1).padStart(2, '0') }}</span>
-      <span v-else class="text-[9px] text-blue-300">{{ row.no || '·' }}</span>
+      <span v-else class="text-[9px] text-emerald-300">{{ row.no || '·' }}</span>
     </td>
 
     <!-- Department name -->
@@ -80,7 +80,7 @@ const emit = defineEmits([
         <!-- Parent badge -->
         <span
           v-if="!row._isChild && groupedRows.some(r => r._isChild && r.parent_dept === row.department)"
-          class="text-[8px] font-bold text-blue-500 bg-blue-50 border border-blue-100
+          class="text-[8px] font-bold text-emerald-500 bg-emerald-50 border border-emerald-100
                  px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wide">
           parent
         </span>
@@ -90,10 +90,10 @@ const emit = defineEmits([
           :value="row.department"
           @input="emit('update-field', { field: 'department', value: $event.target.value })"
           @keyup.enter="emit('toggle-edit', rowIndex)"
-          class="flex-1 text-[13px] font-semibold text-[#0D2137] border-0 border-b-2
+          class="flex-1 text-[13px] font-semibold text-[#064E3B] border-0 border-b-2
                  border-[#C9A84C] outline-none bg-transparent pb-0.5 focus:ring-0"
         />
-        <span v-else :class="['font-semibold', row._isChild ? 'text-gray-600 text-[12px]' : 'text-[#0D2137] text-[13px]']">
+        <span v-else :class="['font-semibold', row._isChild ? 'text-gray-600 text-[12px]' : 'text-[#064E3B] text-[13px]']">
           {{ row.department }}
         </span>
         <!-- Under badge -->
@@ -104,7 +104,7 @@ const emit = defineEmits([
         <!-- Drop hint -->
         <span
           v-if="dragOver === row.department && dragOverPos === 'into' && !row._isChild"
-          class="text-[9px] font-bold text-blue-500 bg-blue-100 px-1.5 py-0.5 rounded-full animate-pulse">
+          class="text-[9px] font-bold text-emerald-500 bg-emerald-100 px-1.5 py-0.5 rounded-full animate-pulse">
           drop here to nest →
         </span>
       </div>
@@ -115,7 +115,7 @@ const emit = defineEmits([
       <span :class="['text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg border whitespace-nowrap',
         row._isChild
           ? 'bg-gray-50 text-gray-400 border-gray-100'
-          : 'bg-[#0D2137]/6 text-[#0D2137] border-[#0D2137]/10']">
+          : 'bg-[#064E3B]/[0.06] text-[#064E3B] border-[#064E3B]/10']">
         {{ row.sheet_code || row.no || '—' }}
       </span>
     </td>
@@ -128,7 +128,7 @@ const emit = defineEmits([
         @input="emit('update-field', { field: 'budget_total', value: parseFloat($event.target.value) || 0 })"
         @keyup.enter="emit('toggle-edit', rowIndex)"
         type="number"
-        class="w-32 text-right text-[13px] font-mono font-bold text-[#0D2137]
+        class="w-32 text-right text-[13px] font-mono font-bold text-[#064E3B]
                border-0 border-b-2 border-[#C9A84C] outline-none bg-transparent pb-0.5"
       />
       <template v-else>
@@ -137,7 +137,7 @@ const emit = defineEmits([
           class="text-[10px] font-bold text-amber-400 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
           No allocation
         </span>
-        <span v-else :class="['font-mono font-bold text-[13px]', row._isChild ? 'text-gray-500' : 'text-[#0D2137]']">
+        <span v-else :class="['font-mono font-bold text-[13px]', row._isChild ? 'text-gray-500' : 'text-[#064E3B]']">
           {{ php(row.budget_total ?? row.budget ?? 0) }}
         </span>
       </template>
@@ -151,7 +151,7 @@ const emit = defineEmits([
           v-if="!row._editing"
           @click.stop="emit('open-move-popup', row, rowIndex)"
           class="text-[10px] font-bold px-2 py-1 rounded-lg text-gray-300
-                 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
           title="Move to parent / detach">
           ⇅
         </button>
@@ -180,7 +180,7 @@ const emit = defineEmits([
           :class="['text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all',
             row._editing
               ? 'bg-emerald-100 text-emerald-700'
-              : 'text-gray-400 hover:text-[#0D2137] hover:bg-gray-100']">
+              : 'text-gray-400 hover:text-[#064E3B] hover:bg-gray-100']">
           {{ row._editing ? '✓ Done' : 'Edit' }}
         </button>
       </div>

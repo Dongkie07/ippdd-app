@@ -49,9 +49,9 @@ const previewIndex = (row) =>
               @click="emit('select-all', selectedRows.length < previewRows.length)"
               :class="['w-4 h-4 rounded border-2 flex items-center justify-center transition-all mx-auto',
                 selectedRows.length === previewRows.length
-                  ? 'bg-[#0D2137] border-[#0D2137]'
+                  ? 'bg-[#064E3B] border-[#064E3B]'
                   : selectedRows.length > 0
-                    ? 'bg-[#0D2137]/30 border-[#0D2137]/40'
+                    ? 'bg-[#064E3B]/30 border-[#064E3B]/40'
                     : 'border-gray-300']">
               <svg v-if="selectedRows.length > 0" class="w-2.5 h-2.5 text-white"
                 fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
@@ -72,7 +72,7 @@ const previewIndex = (row) =>
 
           <!-- Drop-above highlight bar -->
           <tr v-if="dragOver === row.department && dragOverPos === 'above'"
-            class="h-0.5 bg-blue-400 opacity-60" />
+            class="h-0.5 bg-emerald-400 opacity-60" />
 
           <!-- Department row -->
           <DepartmentRow
@@ -99,7 +99,7 @@ const previewIndex = (row) =>
 
           <!-- Drop-below highlight bar -->
           <tr v-if="dragOver === row.department && dragOverPos === 'below'"
-            class="h-0.5 bg-blue-400 opacity-60" />
+            class="h-0.5 bg-emerald-400 opacity-60" />
 
         </template>
 
@@ -115,13 +115,13 @@ const previewIndex = (row) =>
 
       <!-- Totals footer -->
       <tfoot class="sticky bottom-0 bg-white border-t-2 border-gray-200">
-        <tr class="bg-[#0D2137]/[0.025]">
+        <tr class="bg-[#064E3B]/[0.025]">
           <td colspan="4" class="px-5 py-3.5">
             <span class="text-[11px] font-extrabold uppercase tracking-widest text-gray-500">
               Total — {{ selectedRows.length }} of {{ previewRows.length }} selected
             </span>
           </td>
-          <td class="px-4 py-3.5 text-right font-mono font-extrabold text-[#0D2137]">
+          <td class="px-4 py-3.5 text-right font-mono font-extrabold text-[#064E3B]">
             {{ php(totalBudget) }}
           </td>
           <td />

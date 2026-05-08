@@ -1,16 +1,7 @@
 <script setup>
 /**
  * Dashboard/ChartsRow.vue
- * ─────────────────────────────────────────
- * Top 10 bar chart + Budget Distribution donut chart,
- * side by side.
- *
- * Props:
- *   barData    Object — Chart.js dataset for bar chart
- *   barOpts    Object — Chart.js options for bar chart
- *   donutData  Object — Chart.js dataset for donut chart
- *   donutOpts  Object — Chart.js options for donut chart
- *   year       Number — selected fiscal year (for card title)
+ * Top 10 bar chart + Budget Distribution donut chart.
  */
 import SectionCard from '@/Components/SectionCard.vue'
 import { Bar, Doughnut } from 'vue-chartjs'
@@ -25,18 +16,18 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
     <SectionCard
       class="xl:col-span-2"
       :title="`Top 10 Offices — FY ${year}`"
-      subtitle="Ranked by total budget allocation">
-      <div class="h-[260px]">
+      subtitle="Same DNSC-green palette as the distribution chart, because charts should not dress like strangers.">
+      <div class="h-[300px]">
         <Bar :data="barData" :options="barOpts" />
       </div>
     </SectionCard>
 
-    <SectionCard title="Budget Distribution" subtitle="Top 6 offices by share">
-      <div class="h-[260px]">
+    <SectionCard title="Budget Distribution" subtitle="Top 10 offices by total share">
+      <div class="h-[300px]">
         <Doughnut :data="donutData" :options="donutOpts" />
       </div>
     </SectionCard>

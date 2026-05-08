@@ -11,12 +11,12 @@ const emit = defineEmits(['apply', 'close'])
 <template>
   <tr v-if="show">
     <td colspan="6" class="px-0 py-0">
-      <div class="mx-4 my-2 bg-white border-2 border-blue-200 rounded-2xl shadow-lg p-4">
+      <div class="mx-4 my-2 bg-white border-2 border-emerald-200 rounded-2xl shadow-lg p-4">
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-3">
           <div>
-            <p class="text-[12px] font-extrabold text-[#0D2137]">
+            <p class="text-[12px] font-extrabold text-[#064E3B]">
               Move "{{ moveTarget?.department }}"
             </p>
             <p class="text-[10px] text-gray-400 mt-0.5">
@@ -38,8 +38,8 @@ const emit = defineEmits(['apply', 'close'])
             @click="emit('apply', null)"
             :class="['px-3 py-2 rounded-xl border-2 text-left transition-all text-[11px] font-bold',
               !moveTarget?.parent_dept
-                ? 'border-[#0D2137] bg-[#0D2137]/5 text-[#0D2137]'
-                : 'border-gray-100 hover:border-blue-200 text-gray-500 hover:text-[#0D2137]']">
+                ? 'border-[#064E3B] bg-[#064E3B]/5 text-[#064E3B]'
+                : 'border-gray-100 hover:border-emerald-200 text-gray-500 hover:text-[#064E3B]']">
             <div class="flex items-center gap-2">
               <span class="text-base">🏛</span>
               <div>
@@ -56,16 +56,16 @@ const emit = defineEmits(['apply', 'close'])
             @click="emit('apply', p.department)"
             :class="['px-3 py-2 rounded-xl border-2 text-left transition-all',
               moveTarget?.parent_dept === p.department
-                ? 'border-blue-400 bg-blue-50 text-[#0D2137]'
-                : 'border-gray-100 hover:border-blue-200 text-gray-600 hover:text-[#0D2137]']">
+                ? 'border-emerald-400 bg-emerald-50 text-[#064E3B]'
+                : 'border-gray-100 hover:border-emerald-200 text-gray-600 hover:text-[#064E3B]']">
             <div class="flex items-center gap-2">
-              <span class="text-[10px] font-mono font-bold bg-[#0D2137]/8 text-[#0D2137]
-                           px-1.5 py-0.5 rounded border border-[#0D2137]/10 shrink-0">
+              <span class="text-[10px] font-mono font-bold bg-[#064E3B]/[0.08] text-[#064E3B]
+                           px-1.5 py-0.5 rounded border border-[#064E3B]/10 shrink-0">
                 {{ p.sheet_code || p.no || '?' }}
               </span>
               <span class="text-[11px] font-semibold truncate">{{ p.department }}</span>
               <span v-if="moveTarget?.parent_dept === p.department"
-                class="text-[9px] text-blue-500 shrink-0">
+                class="text-[9px] text-emerald-500 shrink-0">
                 current
               </span>
             </div>

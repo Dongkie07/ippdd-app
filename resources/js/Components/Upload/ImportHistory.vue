@@ -23,11 +23,11 @@ const phpM = v => '₱' + (parseFloat(v || 0) / 1e6).toFixed(2) + 'M'
         </tr>
       </thead>
       <tbody>
-        <tr v-for="h in history" :key="h.id" class="border-b border-gray-50 hover:bg-[#0D2137]/[0.02]">
+        <tr v-for="h in history" :key="h.id" class="border-b border-gray-50 hover:bg-[#064E3B]/[0.02]">
           <td class="px-6 py-3.5 font-mono text-[11px] text-gray-500 max-w-[180px] truncate">{{ h.filename }}</td>
-          <td class="px-6 py-3.5 font-bold text-[#0D2137]">FY {{ h.year }}</td>
+          <td class="px-6 py-3.5 font-bold text-[#064E3B]">FY {{ h.year }}</td>
           <td class="px-6 py-3.5 text-right text-gray-500">{{ h.dept_count }}</td>
-          <td class="px-6 py-3.5 text-right font-mono font-bold text-[#0D2137] text-[12px]">{{ phpM(h.total_budget) }}</td>
+          <td class="px-6 py-3.5 text-right font-mono font-bold text-[#064E3B] text-[12px]">{{ phpM(h.total_budget) }}</td>
           <td class="px-6 py-3.5 text-[11px] text-gray-400">
             {{ new Date(h.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' }) }}
           </td>

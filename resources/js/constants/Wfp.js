@@ -1,24 +1,27 @@
 /**
  * constants/wfp.js
  * ─────────────────────────────────────────────────────────────
- * Single source of truth for all WFP-related constants.
- * Import from here — never hard-code colors or fund names inline.
- *
- * Usage:
- *   import { FUNDS, COLORS, FISCAL_YEARS } from '@/constants/wfp'
+ * Single source of truth for WFP labels, fiscal-year defaults,
+ * and the DNSC-inspired IPPDD green palette.
  */
 
-// ── Brand colors ──────────────────────────────────────────────
+// ── Brand colors derived from the DNSC green system screenshot ──
 export const COLORS = {
-  navy:      '#0D2137',
-  navyLight: 'rgba(13, 33, 55, 0.07)',
-  gold:      '#C9A84C',
-  green:     '#1E8449',
-  blue:      '#2E86C1',
-  darkBlue:  '#1A5276',
-  gray:      '#6B7280',
-  grayLight: '#9CA3AF',
-  gridLine:  '#F3F4F6',
+  navy:       '#064E3B', // deep institutional green
+  navyLight:  'rgba(6, 78, 59, 0.08)',
+  green:      '#168A4A',
+  emerald:    '#0F9F5A',
+  mint:       '#53D28C',
+  teal:       '#0F766E',
+  gold:       '#D6B74A',
+  darkBlue:   '#0F766E', // kept for backwards compatibility with older imports
+  blue:       '#059669', // kept for backwards compatibility with older imports
+  gray:       '#64746B',
+  grayLight:  '#8FA79B',
+  gridLine:   '#E6F2EA',
+  surface:    '#F4F8F5',
+  surfaceSoft:'#ECFDF3',
+  border:     '#DDEDE3',
 }
 
 // ── Fund definitions ──────────────────────────────────────────
@@ -50,7 +53,7 @@ export const FUNDS = [
     dbField:    'budget_fund_163',
     label:      'Fund 163 — Retained Income / Business Income',
     shortLabel: 'Fund 163',
-    color:      COLORS.blue,
+    color:      COLORS.teal,
   },
 ]
 
@@ -64,9 +67,16 @@ export const LATEST_YEAR  = 2026
 
 // ── Default chart scale options (reuse in useChartConfigs) ────
 export const CHART_SCALE_DEFAULTS = {
-  x: { ticks: { color: COLORS.grayLight }, grid: { color: COLORS.gridLine } },
+  x: {
+    ticks: { color: COLORS.grayLight, font: { family: 'Inter, ui-sans-serif, system-ui' } },
+    grid:  { color: COLORS.gridLine },
+  },
   y: {
-    ticks: { color: COLORS.grayLight, callback: (v) => '₱' + (v / 1e6).toFixed(0) + 'M' },
+    ticks: {
+      color: COLORS.grayLight,
+      font: { family: 'Inter, ui-sans-serif, system-ui' },
+      callback: (v) => '₱' + (v / 1e6).toFixed(0) + 'M',
+    },
     grid:  { color: COLORS.gridLine },
   },
 }

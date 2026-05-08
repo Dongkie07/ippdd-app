@@ -1,28 +1,11 @@
 <script setup>
 /**
- * Pages/Dashboard.vue — Financial Overview
- * ─────────────────────────────────────────────────────────────
- * Thin page component — just wires props to sub-components.
- *
- * Sub-components (all in Pages/Dashboard/):
- *   KpiRow.vue      — 4 KPI cards
- *   ChartsRow.vue   — bar chart + donut chart
- *   TrendChart.vue  — 3-year line chart
- *   OfficeTable.vue — expandable dept table
- *
- * Composables:
- *   useFormatters   — php(), phpM()
- *   useTableSort    — setSort, applySortTo
- *   useExpandRows   — toggleExpand, isExpanded
- *   useChartConfigs — barData/Opts, lineData/Opts, donutData/Opts
- *
- * DATA FLOW:
- *   DashboardController.php → Inertia props → computed rows → sub-components
+ * Pages/Dashboard.vue — IPPDD Executive Dashboard
+ * Thin page component — wires props to sub-components.
  */
 import { ref, computed, watch } from 'vue'
-import AppLayout   from '@/Layouts/AppLayout.vue'
+import AppLayout from '@/Layouts/AppLayout.vue'
 import AiInsightsPanel from '@/Components/AiInsightsPanel.vue'
-import { Bar, Line, Doughnut } from 'vue-chartjs'
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement,
   LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler
@@ -35,9 +18,10 @@ import TrendChart  from './Dashboard/TrendChart.vue'
 import OfficeTable from './Dashboard/OfficeTable.vue'
 
 // ── Composables ───────────────────────────────────────────────
-import { useTableSort }    from '@/composables/useTableSort'
-import { useExpandRows }   from '@/composables/useExpandRows'
-import { useChartConfigs } from '@/composables/useChartConfigs'
+import { useFormatters }    from '@/composables/useFormatters'
+import { useTableSort }     from '@/composables/useTableSort'
+import { useExpandRows }    from '@/composables/useExpandRows'
+import { useChartConfigs }  from '@/composables/useChartConfigs'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler)
 
@@ -47,6 +31,8 @@ const props = defineProps({
   deptData:    Object, // { 2024: [...top10], 2025: [...], 2026: [...] }
   allDepts:    Array,  // top-level depts with children[] nested inside
 })
+
+const { phpM } = useFormatters()
 
 // ── Selected year state ───────────────────────────────────────
 const year = ref(props.yearSummary?.at(-1)?.year ?? 2026)
@@ -60,8 +46,17 @@ const availableYears = computed(() =>
 const cur  = computed(() => props.yearSummary?.find(y => y.year === year.value) ?? {})
 const prev = computed(() => props.yearSummary?.find(y => y.year === year.value - 1) ?? null)
 
+const totalAcrossYears = computed(() =>
+  (props.yearSummary ?? []).reduce((sum, item) => sum + Number(item.total_budget ?? 0), 0)
+)
+
+const yearRangeLabel = computed(() => {
+  if (!availableYears.value.length) return 'No fiscal years yet'
+  return `FY ${availableYears.value[0]}–${availableYears.value.at(-1)}`
+})
+
 // ── Table: sort + dedup rows ──────────────────────────────────
-const { applySortTo, setSort } = useTableSort('budget_total', 'desc')
+const { applySortTo } = useTableSort('budget_total', 'desc')
 const { collapseAll } = useExpandRows()
 
 // Collapse expanded rows when year changes
@@ -83,38 +78,83 @@ const { barData, barOpts, lineData, lineOpts, donutData, donutOpts } =
 
 <template>
   <AppLayout>
-    <template #breadcrumb>Dashboard Overview</template>
-    <template #title>Financial Overview</template>
-    <template #subtitle>Davao del Norte State College · Annual Work & Financial Plan · FY 2024–2026</template>
+    <template #breadcrumb>
+      <p class="text-[10px] font-black uppercase tracking-[0.2em] text-[#168A4A]">
+        DNSC · IPPDD
+      </p>
+    </template>
+    <template #title>Institutional Planning and Project Development Division (IPPDD) Executive Dashboard</template>
+    <template #subtitle>
+      Annual Work & Financial Plan Intelligence Hub · {{ yearRangeLabel }}
+    </template>
 
     <div class="space-y-5">
+      <!-- Executive hero summary -->
+      <section class="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[#064E3B] via-[#075D3F] to-[#022C22] p-6 text-white shadow-[0_24px_70px_rgba(6,78,59,0.28)]">
+        <div class="pointer-events-none absolute inset-0 opacity-35">
+          <div class="absolute -left-24 -top-24 h-72 w-72 rounded-full border border-[#53D28C]/30" />
+          <div class="absolute right-8 top-8 h-40 w-40 rounded-full bg-[#53D28C]/20 blur-3xl" />
+          <div class="absolute bottom-0 right-0 h-44 w-44 rounded-full border border-white/15" />
+        </div>
+
+        <div class="relative grid gap-6 lg:grid-cols-[1.5fr_.9fr] lg:items-end">
+          <div>
+            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#DDFBE8] backdrop-blur">
+              <span class="h-2 w-2 rounded-full bg-[#53D28C] shadow-[0_0_18px_rgba(83,210,140,.9)]" />
+              Executive Budget Monitor
+            </div>
+            <h2 class="max-w-4xl font-display text-2xl font-black leading-tight tracking-tight sm:text-3xl">
+              Institutional Planning and Project Development Division (IPPDD) Executive Dashboard
+            </h2>
+            <p class="mt-3 max-w-3xl text-sm font-medium leading-6 text-[#DDFBE8]/85">
+              A cleaner financial command center for tracking WFP allocations, office rankings, fund distribution, and year-over-year movement without forcing humans to stare at spreadsheet chaos. Society may yet recover.
+            </p>
+          </div>
+
+          <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div class="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#B7F4CE]/80">Selected Year</p>
+              <p class="mt-1 text-2xl font-black tracking-tight text-white">FY {{ year }}</p>
+            </div>
+            <div class="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#B7F4CE]/80">Current Allocation</p>
+              <p class="mt-1 text-2xl font-black tracking-tight text-white">{{ phpM(cur.total_budget ?? 0) }}</p>
+            </div>
+            <div class="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#B7F4CE]/80">All Years Tracked</p>
+              <p class="mt-1 text-2xl font-black tracking-tight text-white">{{ phpM(totalAcrossYears) }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <!-- Top bar: offices reporting + year selector with + button -->
-      <div class="flex items-center justify-between flex-wrap gap-3">
-        <div class="flex items-center gap-2 bg-[#0D2137]/5 border border-[#0D2137]/10 rounded-xl px-3.5 py-2">
-          <svg class="w-3.5 h-3.5 text-[#C9A84C]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
-          <span class="text-[12px] font-bold text-[#0D2137]">{{ cur.dept_count ?? 0 }} Offices Reporting</span>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2 rounded-2xl border border-[#DDEDE3] bg-white px-4 py-2.5 shadow-sm">
+          <div class="grid h-8 w-8 place-items-center rounded-xl bg-[#ECFDF3] text-[#168A4A]">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3M9 9h1M9 13h1M9 17h1M14 13h1M14 17h1" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#8FA79B]">Offices Reporting</p>
+            <p class="text-[13px] font-black text-[#064E3B]">{{ cur.dept_count ?? 0 }} offices · FY {{ year }}</p>
+          </div>
         </div>
 
         <!-- Year selector with + New Year button -->
-        <div class="flex items-center gap-2">
-          <div class="flex gap-1.5 bg-gray-100 rounded-xl p-1">
-            <button v-for="y in availableYears" :key="y" @click="year = y"
-              :class="['px-3.5 py-1.5 rounded-lg text-[13px] font-bold transition-all',
-                year === y
-                  ? 'bg-white text-[#0D2137] shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600']">
-              {{ y }}
-            </button>
-          </div>
-          <!-- + button → goes to Upload page to add a new fiscal year -->
+        <div class="flex items-center gap-2 rounded-2xl border border-[#DDEDE3] bg-white p-1.5 shadow-sm">
+          <button v-for="y in availableYears" :key="y" @click="year = y"
+            :class="['rounded-xl px-4 py-2 text-[13px] font-black transition-all',
+              year === y
+                ? 'bg-[#064E3B] text-white shadow-lg shadow-[#064E3B]/20'
+                : 'text-[#8FA79B] hover:bg-[#ECFDF3] hover:text-[#064E3B]']">
+            FY {{ y }}
+          </button>
           <a href="/upload"
-            class="w-8 h-8 rounded-xl bg-[#0D2137] text-white flex items-center justify-center
-                   hover:bg-[#1A5276] transition-colors shadow-sm"
+            class="grid h-9 w-9 place-items-center rounded-xl bg-[#168A4A] text-white shadow-sm transition-colors hover:bg-[#064E3B]"
             title="Upload data for a new fiscal year">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path d="M12 5v14M5 12h14"/>
             </svg>
           </a>
@@ -138,7 +178,6 @@ const { barData, barOpts, lineData, lineOpts, donutData, donutOpts } =
 
       <!-- Office breakdown table -->
       <OfficeTable :rows="rows" :year="year" />
-
     </div>
   </AppLayout>
 </template>

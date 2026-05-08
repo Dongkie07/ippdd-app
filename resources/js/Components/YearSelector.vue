@@ -15,7 +15,7 @@ const emit = defineEmits(['update:modelValue'])
       :class="[
         'px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150',
         modelValue === y
-          ? 'bg-white text-[#0B1F3A] shadow-sm'
+          ? 'bg-white text-[#022C22] shadow-sm'
           : 'text-gray-400 hover:text-gray-700'
       ]"
     >{{ y }}</button>

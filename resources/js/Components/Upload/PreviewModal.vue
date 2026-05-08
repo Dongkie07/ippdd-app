@@ -56,7 +56,7 @@ const emit = defineEmits([
         style="font-family: 'Plus Jakarta Sans', sans-serif;">
 
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-[#0D2137]/60 backdrop-blur-sm" @click="emit('close')" />
+        <div class="absolute inset-0 bg-[#064E3B]/60 backdrop-blur-sm" @click="emit('close')" />
 
         <!-- Modal panel -->
         <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
@@ -64,7 +64,7 @@ const emit = defineEmits([
           <!-- ── Header ──────────────────────────────────────── -->
           <div class="flex items-center justify-between px-7 py-5 border-b border-gray-100 shrink-0">
             <div>
-              <h2 class="text-[16px] font-extrabold text-[#0D2137] tracking-tight">Preview Parsed Data</h2>
+              <h2 class="text-[16px] font-extrabold text-[#064E3B] tracking-tight">Preview Parsed Data</h2>
               <p class="text-[12px] text-gray-400 mt-0.5 font-medium">
                 Review and edit before saving to database &nbsp;·&nbsp; {{ filename }}
               </p>
@@ -100,8 +100,8 @@ const emit = defineEmits([
             </div>
             <button
               @click="emit('open-add-office', '')"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D2137] text-white
-                     text-[11px] font-bold hover:bg-[#1A5276] transition-colors shrink-0">
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#064E3B] text-white
+                     text-[11px] font-bold hover:bg-[#0F766E] transition-colors shrink-0">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path d="M12 5v14M5 12h14"/>
               </svg>
@@ -152,7 +152,7 @@ const emit = defineEmits([
           <div class="flex items-center justify-between gap-4 px-7 py-4 border-t border-gray-100 bg-gray-50/50 shrink-0">
             <div class="flex items-center gap-2">
               <button @click="emit('select-all', true)"
-                class="text-[11px] font-bold text-[#0D2137] hover:text-[#C9A84C] transition-colors">
+                class="text-[11px] font-bold text-[#064E3B] hover:text-[#C9A84C] transition-colors">
                 Select All
               </button>
               <span class="text-gray-300 text-xs">|</span>
@@ -172,8 +172,8 @@ const emit = defineEmits([
               <button
                 @click="emit('confirm')"
                 :disabled="stage === 'saving' || !selectedRows.length"
-                class="px-6 py-2.5 rounded-xl bg-[#0D2137] text-white font-bold text-[13px] tracking-wide
-                       hover:bg-[#1A5276] transition-colors disabled:opacity-50
+                class="px-6 py-2.5 rounded-xl bg-[#064E3B] text-white font-bold text-[13px] tracking-wide
+                       hover:bg-[#0F766E] transition-colors disabled:opacity-50
                        flex items-center gap-2 shadow-sm">
                 <svg v-if="stage === 'saving'" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>

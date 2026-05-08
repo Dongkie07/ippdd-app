@@ -68,8 +68,8 @@ import { nextTick } from 'vue'
           @click="emit('update:modelValue', y)"
           :class="['px-3.5 py-1.5 rounded-xl text-[13px] font-bold border transition-all pr-5',
             modelValue === y
-              ? 'bg-[#0D2137] text-white border-[#0D2137] shadow-sm'
-              : 'bg-white text-gray-400 border-gray-200 hover:border-[#0D2137]/40']">
+              ? 'bg-[#064E3B] text-white border-[#064E3B] shadow-sm'
+              : 'bg-white text-gray-400 border-gray-200 hover:border-[#064E3B]/40']">
           {{ y }}
         </button>
 
@@ -89,7 +89,7 @@ import { nextTick } from 'vue'
         v-if="!showInput"
         @click="openInput"
         class="w-8 h-8 rounded-xl border-2 border-dashed border-gray-300 text-gray-400
-               hover:border-[#0D2137]/50 hover:text-[#0D2137] hover:bg-[#0D2137]/5
+               hover:border-[#064E3B]/50 hover:text-[#064E3B] hover:bg-[#064E3B]/5
                transition-all flex items-center justify-center font-bold text-lg"
         title="Add custom fiscal year">
         +
@@ -109,7 +109,7 @@ import { nextTick } from 'vue'
               :class="['w-28 px-2.5 py-1.5 rounded-xl text-[13px] font-bold border-2 outline-none transition-all',
                 inputError
                   ? 'border-red-400 bg-red-50 text-red-700'
-                  : 'border-[#0D2137]/40 bg-white text-[#0D2137] focus:border-[#0D2137]']"
+                  : 'border-[#064E3B]/40 bg-white text-[#064E3B] focus:border-[#064E3B]']"
             />
             <p v-if="inputError" class="absolute top-9 left-0 text-[10px] text-red-500 font-semibold whitespace-nowrap">
               {{ inputError }}
@@ -119,8 +119,8 @@ import { nextTick } from 'vue'
           <!-- Confirm -->
           <button
             @click="addYear"
-            class="w-7 h-7 rounded-lg bg-[#0D2137] text-white flex items-center justify-center
-                   hover:bg-[#1A5276] transition-colors text-sm font-bold">
+            class="w-7 h-7 rounded-lg bg-[#064E3B] text-white flex items-center justify-center
+                   hover:bg-[#0F766E] transition-colors text-sm font-bold">
             ✓
           </button>
 

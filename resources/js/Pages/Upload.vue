@@ -64,11 +64,11 @@ const {
             { n:'3', label:'Save',    desc:'Confirm to update database' },
           ]" :key="i"
             class="flex items-start gap-2.5 p-3 rounded-xl bg-gray-50 border border-gray-100">
-            <span class="w-5 h-5 rounded-full bg-[#0D2137] text-white text-[10px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">
+            <span class="w-5 h-5 rounded-full bg-[#064E3B] text-white text-[10px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">
               {{ step.n }}
             </span>
             <div>
-              <p class="text-[11px] font-bold text-[#0D2137]">{{ step.label }}</p>
+              <p class="text-[11px] font-bold text-[#064E3B]">{{ step.label }}</p>
               <p class="text-[10px] text-gray-400 mt-0.5">{{ step.desc }}</p>
             </div>
           </div>

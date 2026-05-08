@@ -19,17 +19,17 @@ const emit = defineEmits(['pick', 'clear', 'upload', 'dragging'])
       :class="[
         'border-2 border-dashed rounded-2xl py-14 text-center cursor-pointer transition-all select-none',
         file
-          ? 'border-[#0D2137]/30 bg-[#0D2137]/[0.025]'
+          ? 'border-[#064E3B]/30 bg-[#064E3B]/[0.025]'
           : dragging
             ? 'border-[#C9A84C] bg-[#C9A84C]/5 scale-[1.01]'
-            : 'border-gray-200 hover:border-[#0D2137]/40 hover:bg-gray-50/80'
+            : 'border-gray-200 hover:border-[#064E3B]/40 hover:bg-gray-50/80'
       ]">
       <input ref="fi" type="file" accept=".xlsx,.xls" class="hidden" @change="e => emit('pick', e)" />
 
       <!-- Empty state -->
       <template v-if="!file">
-        <div class="w-14 h-14 rounded-2xl bg-[#0D2137]/6 border border-[#0D2137]/10 flex items-center justify-center mx-auto mb-4">
-          <svg class="w-7 h-7 text-[#0D2137]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <div class="w-14 h-14 rounded-2xl bg-[#064E3B]/[0.06] border border-[#064E3B]/10 flex items-center justify-center mx-auto mb-4">
+          <svg class="w-7 h-7 text-[#064E3B]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4-4 4M12 4v12"/>
           </svg>
         </div>
@@ -47,7 +47,7 @@ const emit = defineEmits(['pick', 'clear', 'upload', 'dragging'])
             </svg>
           </div>
           <div class="text-left">
-            <p class="font-bold text-[#0D2137] text-[13px]">{{ file.name }}</p>
+            <p class="font-bold text-[#064E3B] text-[13px]">{{ file.name }}</p>
             <p class="text-[11px] text-gray-400 mt-0.5">{{ (file.size / 1024).toFixed(0) }} KB &nbsp;·&nbsp; FY {{ year }}</p>
           </div>
           <button @click.stop="emit('clear')"
@@ -64,8 +64,8 @@ const emit = defineEmits(['pick', 'clear', 'upload', 'dragging'])
     <button v-if="file"
       @click="emit('upload')"
       :disabled="stage === 'uploading'"
-      class="mt-4 w-full py-3 rounded-xl bg-[#0D2137] text-white font-bold text-[13px] tracking-wide
-             hover:bg-[#1A5276] transition-colors disabled:opacity-60
+      class="mt-4 w-full py-3 rounded-xl bg-[#064E3B] text-white font-bold text-[13px] tracking-wide
+             hover:bg-[#0F766E] transition-colors disabled:opacity-60
              flex items-center justify-center gap-2.5 shadow-sm">
       <svg v-if="stage === 'uploading'" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>

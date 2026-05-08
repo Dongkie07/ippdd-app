@@ -1,18 +1,7 @@
 <script setup>
 /**
  * Dashboard/OfficeTable.vue
- * ─────────────────────────────────────────
  * Expandable office breakdown table.
- * Shows all top-level departments with expand/collapse
- * to reveal sub-offices and their budgets.
- *
- * Props:
- *   rows  Array — sorted, deduplicated dept rows (from Dashboard.vue)
- *
- * Each row shape:
- *   { department, budget_total, own_budget,
- *     budget_fund_101/164/161/163,
- *     children: [{ department, budget_total, budget_fund_* }] }
  */
 import SectionCard from '@/Components/SectionCard.vue'
 import { ref, computed } from 'vue'
@@ -43,8 +32,6 @@ const f164 = d => d.budget_fund_164 ?? d.fund_164 ?? 0
 const f161 = d => d.budget_fund_161 ?? d.fund_161 ?? 0
 const f163 = d => d.budget_fund_163 ?? d.fund_163 ?? 0
 
-// Column definitions — drives both <thead> and <tbody> cells
-// Makes adding/removing columns a one-line change
 const COLUMNS = [
   { key: 'budget_total',    label: 'Total Budget', sortable: true,  align: 'right', get: d => bget(d) },
   { key: 'budget_fund_101', label: 'Fund 101',     sortable: true,  align: 'right', get: d => f101(d) },
@@ -62,32 +49,31 @@ const COLUMNS = [
 
     <template #actions>
       <div class="relative">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+        <svg class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8FA79B]"
           fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
         </svg>
         <input v-model="search" type="text" placeholder="Search office…"
-          class="pl-8 pr-4 py-2 text-[12px] border border-gray-200 rounded-xl w-48
-                 focus:outline-none focus:ring-2 focus:ring-[#0D2137]/20
-                 text-gray-600 placeholder-gray-300 bg-gray-50/50" />
+          class="w-52 rounded-2xl border border-[#DDEDE3] bg-[#F8FCF9] py-2 pl-8 pr-4 text-[12px] font-semibold
+                 text-[#064E3B] placeholder-[#8FA79B] focus:outline-none focus:ring-2 focus:ring-[#168A4A]/20" />
       </div>
     </template>
 
     <div class="overflow-x-auto">
       <table class="w-full text-[13px]">
-        <thead>
-          <tr class="border-b-2 border-gray-100">
-            <th class="text-left px-6 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400 w-10">#</th>
-            <th class="text-left px-6 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">
-              <button @click="setSort('department'); emit('update:sort')" class="hover:text-[#0D2137]">
+        <thead class="bg-[#F8FCF9]">
+          <tr class="border-b-2 border-[#E6F2EA]">
+            <th class="w-10 px-6 py-3 text-left text-[10px] font-black uppercase tracking-[0.14em] text-[#8FA79B]">#</th>
+            <th class="px-6 py-3 text-left text-[10px] font-black uppercase tracking-[0.14em] text-[#8FA79B]">
+              <button @click="setSort('department'); emit('update:sort')" class="hover:text-[#064E3B]">
                 Department{{ sortIcon('department') }}
               </button>
             </th>
             <th v-for="col in COLUMNS" :key="col.key"
-              class="text-right px-6 py-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-gray-400">
+              class="px-6 py-3 text-right text-[10px] font-black uppercase tracking-[0.14em] text-[#8FA79B]">
               <button v-if="col.sortable"
                 @click="setSort(col.key); emit('update:sort')"
-                class="hover:text-[#0D2137] ml-auto flex items-center gap-1">
+                class="ml-auto flex items-center gap-1 hover:text-[#064E3B]">
                 {{ col.label }}{{ sortIcon(col.key) }}
               </button>
               <span v-else>{{ col.label }}</span>
@@ -97,47 +83,46 @@ const COLUMNS = [
 
         <tbody>
           <template v-for="(d, i) in filtered" :key="d.department + '_' + year">
-
             <!-- Parent row -->
             <tr @click="d.children?.length ? toggleExpand(d.department) : null"
               :class="[
-                'border-b border-gray-50 transition-colors group',
-                d.children?.length ? 'cursor-pointer hover:bg-[#0D2137]/[0.03]' : 'hover:bg-[#0D2137]/[0.02]',
-                isExpanded(d.department) ? 'bg-[#0D2137]/[0.025]' : ''
+                'group border-b border-[#E6F2EA]/70 transition-colors',
+                d.children?.length ? 'cursor-pointer hover:bg-[#ECFDF3]/70' : 'hover:bg-[#ECFDF3]/50',
+                isExpanded(d.department) ? 'bg-[#ECFDF3]' : ''
               ]">
-              <td class="px-6 py-3.5 text-gray-300 font-mono text-[11px] font-bold">
+              <td class="px-6 py-3.5 font-mono text-[11px] font-black text-[#8FA79B]">
                 {{ String(i + 1).padStart(2, '0') }}
               </td>
               <td class="px-6 py-3.5">
                 <div class="flex items-center gap-2">
                   <span v-if="d.children?.length"
-                    :class="['transition-transform duration-200 text-gray-300 group-hover:text-[#0D2137]',
+                    :class="['text-[#8FA79B] transition-transform duration-200 group-hover:text-[#064E3B]',
                       isExpanded(d.department) ? 'rotate-90' : '']">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                       <path d="M9 18l6-6-6-6"/>
                     </svg>
                   </span>
                   <span v-else class="w-3.5 shrink-0" />
-                  <span class="font-semibold text-[#0D2137] group-hover:text-[#1A5276] transition-colors">
+                  <span class="font-bold text-[#064E3B] transition-colors group-hover:text-[#168A4A]">
                     {{ d.department }}
                   </span>
                   <span v-if="d.children?.length"
-                    class="text-[9px] font-bold text-blue-400 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-full">
+                    class="rounded-full border border-[#B7F4CE] bg-[#ECFDF3] px-1.5 py-0.5 text-[9px] font-black text-[#168A4A]">
                     {{ d.children.length }} sub
                   </span>
                   <span v-if="d.children?.length && d.own_budget > 0"
-                    class="text-[9px] text-gray-300 font-mono hidden group-hover:inline">
+                    class="hidden font-mono text-[9px] text-[#8FA79B] group-hover:inline">
                     own {{ phpM(d.own_budget) }}
                   </span>
                 </div>
               </td>
               <!-- Budget columns -->
               <td class="px-6 py-3.5 text-right">
-                <span class="font-mono font-bold text-[#0D2137] text-[13px]">{{ php(bget(d)) }}</span>
-                <p v-if="d.children?.length" class="text-[9px] text-gray-300 font-mono mt-0.5">incl. sub-offices</p>
+                <span class="font-mono text-[13px] font-black text-[#064E3B]">{{ php(bget(d)) }}</span>
+                <p v-if="d.children?.length" class="mt-0.5 font-mono text-[9px] text-[#8FA79B]">incl. sub-offices</p>
               </td>
               <td v-for="col in COLUMNS.slice(1)" :key="col.key"
-                class="px-6 py-3.5 text-right font-mono text-[12px] text-gray-500">
+                class="px-6 py-3.5 text-right font-mono text-[12px] font-semibold text-[#64746B]">
                 {{ col.get(d) > 0 ? php(col.get(d)) : '—' }}
               </td>
             </tr>
@@ -145,59 +130,58 @@ const COLUMNS = [
             <!-- Child rows -->
             <template v-if="d.children?.length && isExpanded(d.department)">
               <tr v-for="child in d.children" :key="child.department"
-                class="border-b border-gray-50/80 bg-slate-50/60 hover:bg-blue-50/20 transition-colors">
+                class="border-b border-[#E6F2EA]/70 bg-[#F8FCF9] transition-colors hover:bg-[#ECFDF3]">
                 <td class="px-6 py-2.5" />
                 <td class="py-2.5 pl-14 pr-6">
                   <div class="flex items-center gap-2">
-                    <div class="w-3 h-px bg-gray-200 shrink-0" />
-                    <div class="w-1 h-1 rounded-full bg-gray-300 shrink-0" />
-                    <span class="text-[12px] font-medium text-gray-600">{{ child.department }}</span>
+                    <div class="h-px w-3 shrink-0 bg-[#B7F4CE]" />
+                    <div class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#53D28C]" />
+                    <span class="text-[12px] font-semibold text-[#64746B]">{{ child.department }}</span>
                     <span v-if="child.budget_total === 0"
-                      class="text-[9px] font-bold text-amber-400 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full">
+                      class="rounded-full border border-amber-100 bg-amber-50 px-1.5 py-0.5 text-[9px] font-black text-amber-500">
                       No allocation
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-2.5 text-right font-mono text-[12px] font-semibold text-gray-600">
+                <td class="px-6 py-2.5 text-right font-mono text-[12px] font-bold text-[#64746B]">
                   {{ child.budget_total > 0 ? php(child.budget_total) : '—' }}
                 </td>
                 <td v-for="col in COLUMNS.slice(1)" :key="col.key"
-                  class="px-6 py-2.5 text-right font-mono text-[11px] text-gray-400">
+                  class="px-6 py-2.5 text-right font-mono text-[11px] text-[#8FA79B]">
                   {{ col.get(child) > 0 ? php(col.get(child)) : '—' }}
                 </td>
               </tr>
 
               <!-- Subtotal -->
-              <tr class="border-b-2 border-[#0D2137]/10 bg-[#0D2137]/[0.015]">
+              <tr class="border-b-2 border-[#B7F4CE] bg-[#ECFDF3]">
                 <td class="px-6 py-2" />
                 <td class="py-2 pl-14 pr-6">
-                  <span class="text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+                  <span class="text-[10px] font-black uppercase tracking-widest text-[#64746B]">
                     {{ d.department }} — subtotal
                   </span>
                 </td>
-                <td class="px-6 py-2 text-right font-mono font-extrabold text-[#0D2137] text-[12px]">
+                <td class="px-6 py-2 text-right font-mono text-[12px] font-black text-[#064E3B]">
                   {{ php(bget(d)) }}
                 </td>
-                <td colspan="4" class="px-6 py-2 text-right text-[10px] text-gray-400 font-mono">
+                <td colspan="4" class="px-6 py-2 text-right font-mono text-[10px] text-[#64746B]">
                   {{ d.children.length }} sub-offices · own {{ phpM(d.own_budget ?? 0) }}
                 </td>
               </tr>
             </template>
-
           </template>
 
           <tr v-if="filtered.length === 0">
-            <td colspan="7" class="px-6 py-14 text-center text-gray-300 text-sm">No results found.</td>
+            <td colspan="7" class="px-6 py-14 text-center text-sm font-semibold text-[#8FA79B]">No results found.</td>
           </tr>
         </tbody>
 
         <!-- Footer totals -->
         <tfoot v-if="filtered.length > 0">
-          <tr class="border-t-2 border-gray-200 bg-[#0D2137]/[0.02]">
+          <tr class="border-t-2 border-[#DDEDE3] bg-[#F8FCF9]">
             <td colspan="2" class="px-6 py-3.5">
-              <span class="text-[11px] font-extrabold uppercase tracking-widest text-gray-500">Total</span>
+              <span class="text-[11px] font-black uppercase tracking-widest text-[#64746B]">Total</span>
             </td>
-            <td v-for="col in COLUMNS" :key="col.key" class="px-6 py-3.5 text-right font-mono font-extrabold text-[#0D2137]">
+            <td v-for="col in COLUMNS" :key="col.key" class="px-6 py-3.5 text-right font-mono font-black text-[#064E3B]">
               {{ php(filtered.reduce((s, d) => s + col.get(d), 0)) }}
             </td>
           </tr>

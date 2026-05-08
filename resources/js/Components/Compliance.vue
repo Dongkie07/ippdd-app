@@ -99,8 +99,8 @@ const toggleDept = id => {
             @click="filterStatus = f"
             :class="['text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all',
               filterStatus === f
-                ? 'bg-[#0D2137] text-white border-[#0D2137]'
-                : 'bg-white text-gray-500 border-gray-200 hover:border-[#0D2137]/30']">
+                ? 'bg-[#064E3B] text-white border-[#064E3B]'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-[#064E3B]/30']">
             {{ f }}
             <span v-if="f !== 'All'" class="ml-1 opacity-60">
               ({{ f === 'Approved' ? approved : f === 'Pending' ? pending : forRevision }})
@@ -114,7 +114,7 @@ const toggleDept = id => {
               <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
             </svg>
             <input v-model="search" placeholder="Search department…"
-              class="pl-8 pr-4 py-1.5 text-[12px] border border-gray-200 rounded-full w-44 bg-white focus:outline-none focus:ring-2 focus:ring-[#0D2137]/20 focus:border-[#0D2137]/40" />
+              class="pl-8 pr-4 py-1.5 text-[12px] border border-gray-200 rounded-full w-44 bg-white focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B]/40" />
           </div>
         </div>
 
@@ -129,7 +129,7 @@ const toggleDept = id => {
           <div class="flex items-start justify-between mb-3">
             <div>
               <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-gray-400">Submission Progress</p>
-              <p class="text-[26px] font-extrabold text-[#0D2137] leading-tight mt-1">
+              <p class="text-[26px] font-extrabold text-[#064E3B] leading-tight mt-1">
                 {{ approved }} <span class="text-[16px] text-gray-400 font-semibold">/ {{ total }}</span>
               </p>
               <p class="text-[11px] text-gray-400 mt-0.5">departments approved for FY {{ year }}</p>
@@ -165,13 +165,13 @@ const toggleDept = id => {
         <!-- Total budget -->
         <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
           <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-gray-400 mb-1">Total Budget</p>
-          <p class="text-[22px] font-extrabold text-[#0D2137] leading-tight">{{ phpM(totalBudget) }}</p>
+          <p class="text-[22px] font-extrabold text-[#064E3B] leading-tight">{{ phpM(totalBudget) }}</p>
           <p class="text-[11px] text-gray-400 mt-0.5">FY {{ year }} verified total</p>
           <div class="mt-3 space-y-1.5">
             <div v-for="[label, val, color] in [
-              ['Fund 101', fund101, 'bg-[#0D2137]'],
+              ['Fund 101', fund101, 'bg-[#064E3B]'],
               ['Fund 164', fund164, 'bg-[#C9A84C]'],
-              ['Fund 161', fund161, 'bg-[#1A5276]'],
+              ['Fund 161', fund161, 'bg-[#0F766E]'],
               ['Fund 163', fund163, 'bg-emerald-500'],
             ]" :key="label" class="flex items-center gap-2">
               <div :class="['w-1.5 h-1.5 rounded-full shrink-0', color]" />
@@ -190,7 +190,7 @@ const toggleDept = id => {
           <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-gray-400 mb-1">Performance Indicators</p>
           <p class="text-[22px] font-extrabold text-[#C9A84C] leading-tight">{{ totalPIs.toLocaleString() }}</p>
           <p class="text-[11px] text-gray-400 mt-0.5">total PIs across all offices</p>
-          <div class="mt-3 bg-[#C9A84C]/8 border border-[#C9A84C]/15 rounded-xl px-3 py-2.5">
+          <div class="mt-3 bg-[#C9A84C]/[0.08] border border-[#C9A84C]/15 rounded-xl px-3 py-2.5">
             <p class="text-[11px] font-bold text-[#8B6914]">
               Avg {{ forYear.length ? Math.round(totalPIs / forYear.length) : 0 }} PIs / office
             </p>
@@ -210,9 +210,9 @@ const toggleDept = id => {
         </p>
         <div class="flex rounded-xl overflow-hidden h-6">
           <div v-for="[label, val, color, text] in [
-            ['Fund 101', fund101, 'bg-[#0D2137]', 'text-white'],
-            ['Fund 164', fund164, 'bg-[#C9A84C]', 'text-[#0D2137]'],
-            ['Fund 161', fund161, 'bg-[#1A5276]', 'text-white'],
+            ['Fund 101', fund101, 'bg-[#064E3B]', 'text-white'],
+            ['Fund 164', fund164, 'bg-[#C9A84C]', 'text-[#064E3B]'],
+            ['Fund 161', fund161, 'bg-[#0F766E]', 'text-white'],
             ['Fund 163', fund163, 'bg-emerald-500','text-white'],
           ]" :key="label"
             :class="['flex items-center justify-center transition-all overflow-hidden', color, text]"
@@ -225,9 +225,9 @@ const toggleDept = id => {
         </div>
         <div class="flex items-center gap-4 mt-2">
           <div v-for="[label, val, dot] in [
-            ['Fund 101 (NEP/GAA)', fund101, 'bg-[#0D2137]'],
+            ['Fund 101 (NEP/GAA)', fund101, 'bg-[#064E3B]'],
             ['Fund 164 (Fiduciary)', fund164, 'bg-[#C9A84C]'],
-            ['Fund 161', fund161, 'bg-[#1A5276]'],
+            ['Fund 161', fund161, 'bg-[#0F766E]'],
             ['Fund 163', fund163, 'bg-emerald-500'],
           ]" :key="label" class="flex items-center gap-1.5">
             <div :class="['w-2 h-2 rounded-full', dot]" />
@@ -244,7 +244,7 @@ const toggleDept = id => {
         <!-- Table header -->
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <h3 class="text-[13px] font-extrabold text-[#0D2137]">Department Submissions</h3>
+            <h3 class="text-[13px] font-extrabold text-[#064E3B]">Department Submissions</h3>
             <p class="text-[11px] text-gray-400">{{ filtered.length }} of {{ total }} departments · FY {{ year }}</p>
           </div>
           <div v-if="filtered.length !== total"
@@ -273,15 +273,15 @@ const toggleDept = id => {
               <template v-for="dept in filtered" :key="dept.id">
 
                 <!-- Main row -->
-                <tr class="border-b border-gray-50 hover:bg-[#0D2137]/[0.018] transition-colors group"
-                  :class="expandedDept === dept.id ? 'bg-[#0D2137]/[0.025]' : ''">
+                <tr class="border-b border-gray-50 hover:bg-[#064E3B]/[0.018] transition-colors group"
+                  :class="expandedDept === dept.id ? 'bg-[#064E3B]/[0.025]' : ''">
 
                   <td class="px-5 py-3.5 text-gray-300 font-mono font-bold text-[10px]">
                     {{ dept.no || '—' }}
                   </td>
 
                   <td class="px-5 py-3.5">
-                    <span class="font-semibold text-[#0D2137] group-hover:text-[#1A5276] transition-colors">
+                    <span class="font-semibold text-[#064E3B] group-hover:text-[#0F766E] transition-colors">
                       {{ dept.department }}
                     </span>
                   </td>
@@ -293,7 +293,7 @@ const toggleDept = id => {
                     </span>
                   </td>
 
-                  <td class="px-4 py-3.5 text-right font-mono font-bold text-[#0D2137]">
+                  <td class="px-4 py-3.5 text-right font-mono font-bold text-[#064E3B]">
                     {{ phpM(dept.budget_total) }}
                   </td>
 
@@ -348,7 +348,7 @@ const toggleDept = id => {
                             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                           </svg>
                         </div>
-                        <p class="text-[11px] font-extrabold text-[#0D2137] uppercase tracking-wider">
+                        <p class="text-[11px] font-extrabold text-[#064E3B] uppercase tracking-wider">
                           Performance Indicators — {{ dept.department }}
                         </p>
                         <span class="text-[10px] bg-[#C9A84C]/10 text-[#8B6914] border border-[#C9A84C]/20 px-2 py-0.5 rounded-full font-bold">
@@ -364,12 +364,12 @@ const toggleDept = id => {
                             {{ pi.code || '#' + pi.seq }}
                           </span>
                           <div class="flex-1 min-w-0">
-                            <p class="text-[12px] font-semibold text-[#0D2137] leading-snug">{{ pi.description }}</p>
+                            <p class="text-[12px] font-semibold text-[#064E3B] leading-snug">{{ pi.description }}</p>
                             <div class="flex items-center gap-3 mt-1">
                               <span v-if="pi.reference_source"
                                 class="text-[10px] text-gray-400">{{ pi.reference_source }}</span>
                               <span v-if="pi.target"
-                                class="text-[10px] font-bold text-[#1A5276] bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-md">
+                                class="text-[10px] font-bold text-[#0F766E] bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md">
                                 Target: {{ pi.target }}
                               </span>
                             </div>
@@ -413,7 +413,7 @@ const toggleDept = id => {
                     Total ({{ filtered.length }} shown)
                   </span>
                 </td>
-                <td class="px-4 py-3.5 text-right font-mono font-extrabold text-[#0D2137]">
+                <td class="px-4 py-3.5 text-right font-mono font-extrabold text-[#064E3B]">
                   {{ phpM(filtered.reduce((s, d) => s + (d.budget_total || 0), 0)) }}
                 </td>
                 <td class="px-4 py-3.5 text-right font-mono font-bold text-gray-600 text-[11px]">
@@ -425,7 +425,7 @@ const toggleDept = id => {
                 <td class="px-4 py-3.5 text-right font-mono font-bold text-gray-600 text-[11px]">
                   {{ phpM(filtered.reduce((s, d) => s + (d.budget_fund_161 || 0), 0)) }}
                 </td>
-                <td class="px-4 py-3.5 text-right font-bold text-[#0D2137]">
+                <td class="px-4 py-3.5 text-right font-bold text-[#064E3B]">
                   {{ filtered.reduce((s, d) => s + (d.pi_count || 0), 0) }}
                 </td>
                 <td colspan="2" class="px-4 py-3.5" />

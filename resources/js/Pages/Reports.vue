@@ -32,7 +32,7 @@ const generate = (i) => {
           <p class="text-sm text-gray-400 mt-0.5">Export dashboard data as PDF or Excel</p>
         </div>
         <!-- Year pick -->
-        <select v-model="selectedYear" class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1E90FF]/30">
+        <select v-model="selectedYear" class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#168A4A]/30">
           <option value="2024">2024</option>
           <option value="2025">2025</option>
           <option value="2026">2026</option>
@@ -46,7 +46,7 @@ const generate = (i) => {
           class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow group"
         >
           <div class="flex items-start gap-4">
-            <div class="w-10 h-10 rounded-xl bg-[#F0F5FF] flex items-center justify-center text-[#1E90FF] shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-[#ECFDF3] flex items-center justify-center text-[#168A4A] shrink-0">
               <svg v-if="report.icon === 'chart'" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M3 18V10M8 18V6M13 18v-4M18 18V8"/><line x1="3" y1="18" x2="21" y2="18"/>
               </svg>
@@ -73,7 +73,7 @@ const generate = (i) => {
               <button
                 @click="generate(i)"
                 :disabled="generating === i"
-                class="mt-3 text-xs font-semibold text-[#1E90FF] hover:underline flex items-center gap-1 disabled:opacity-50"
+                class="mt-3 text-xs font-semibold text-[#168A4A] hover:underline flex items-center gap-1 disabled:opacity-50"
               >
                 <svg v-if="generating === i" class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
