@@ -107,7 +107,7 @@ const { barData, barOpts, lineData, lineOpts, donutData, donutOpts } =
               Institutional Planning and Project Development Division (IPPDD) Executive Dashboard
             </h2>
             <p class="mt-3 max-w-3xl text-sm font-medium leading-6 text-[#DDFBE8]/85">
-              A cleaner financial command center for tracking WFP allocations, office rankings, fund distribution, and year-over-year movement without forcing humans to stare at spreadsheet chaos. Society may yet recover.
+              A cleaner financial command center for tracking WFP allocations, office rankings, fund distribution, and year-over-year movement without forcing humans to stare at spreadsheet. 
             </p>
           </div>
 

@@ -58,7 +58,7 @@ const confirmDeleteAction = () => {
 
 <template>
   <AppLayout>
-    <template #breadcrumb>Manual Entry</template>
+    <template #breadcrumb></template>
     <template #title>Manual Data Entry</template>
     <template #subtitle>Add, edit, or delete department budget data for any fiscal year</template>
 

@@ -27,7 +27,7 @@ const {
 
 <template>
   <AppLayout>
-    <template #breadcrumb>Upload WFP Data</template>
+    <template #breadcrumb></template>
     <template #title>Upload WFP Data</template>
     <template #subtitle>Import Work & Financial Plan Excel files · Preview before saving</template>
 
