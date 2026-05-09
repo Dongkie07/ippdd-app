@@ -333,7 +333,7 @@ Check that:
 - File size is below the upload limit
 - The file has a STATUS/MONITORING sheet
 - The sheet contains budget columns for Fund 101, 164, 161, 163, and total budget
-
+- sample format find the file named : SAMPLE FORMAT XLSX FILE FOR UPLOADING.xlsx
 ### Graph does not show Fund 161 or Fund 163
 
 The dashboard line chart already includes Fund 161 and Fund 163. If a fund still does not appear, the values for that fund are probably `0` for the selected years. Computers, in their petty literalness, refuse to draw money that does not exist.
@@ -363,4 +363,3 @@ The project already has `.gitignore`, but make sure these are ignored:
 /storage/logs/*.log
 /bootstrap/cache/*.php
 ```
-## Sample format file is included find the xlsx named :SAMPLE FORMAT XLSX FILE FOR UPLOADING.xlsx
