@@ -1,7 +1,7 @@
 <script setup>
 /**
  * Pages/Budget.vue — Department Breakdown
- * Thin page component only. Data shaping lives in useBudgetBreakdown.js,
+ * Thin page component only. Data shaping lives in composables/budget/useBudgetBreakdown.js,
  * while each tab owns its own table/chart UI.
  */
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -22,7 +22,7 @@ import FundMixTab from './Budget/FundMixTab.vue'
 import RankingTab from './Budget/RankingTab.vue'
 import YearComparisonTab from './Budget/YearComparisonTab.vue'
 import YearSummaryCards from './Budget/YearSummaryCards.vue'
-import { useBudgetBreakdown } from './Budget/useBudgetBreakdown'
+import { useBudgetBreakdown } from '@/composables/budget/useBudgetBreakdown'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend)
 
@@ -35,6 +35,7 @@ const props = defineProps({
   losers: { type: Array, default: () => [] },
   fundMix: { type: Array, default: () => [] },
 })
+
 const {
   activeTab,
   search,
@@ -57,7 +58,6 @@ const {
   trendColor,
   trendBg,
 } = useBudgetBreakdown(props)
-
 </script>
 
 <template>
@@ -70,8 +70,6 @@ const {
 
     <div class="space-y-5">
       <YearSummaryCards :yearTotals="yearTotalsRef" :years="yearsRef" />
-
-      
 
       <BudgetTabs v-model:activeTab="activeTab" :tabs="tabs" />
 

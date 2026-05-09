@@ -106,20 +106,20 @@ const { barData, barOpts, lineData, lineOpts, donutData, donutOpts } =
               Institutional Planning and Project Development Division (IPPDD) Executive Dashboard
             </h2>
             <p class="mt-3 max-w-3xl text-sm font-medium leading-6 text-[#DDFBE8]/85">
-              A cleaner financial monitoring for tracking WFP allocations, office rankings, fund distribution, and year-over-year movement. 
+              A cleaner financial command center for tracking WFP allocations, office rankings, fund distribution, and year-over-year movement without forcing humans to stare at a spreadsheet. 
             </p>
           </div>
 
           <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-            <div class="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur">
+            <div class="rounded-2xl border border-[#1F7A58]/60 bg-[#075D3F] p-4 shadow-inner">
               <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#B7F4CE]/80">Selected Year</p>
               <p class="mt-1 text-2xl font-black tracking-tight text-white">FY {{ year }}</p>
             </div>
-            <div class="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur">
+            <div class="rounded-2xl border border-[#1F7A58]/60 bg-[#075D3F] p-4 shadow-inner">
               <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#B7F4CE]/80">Current Allocation</p>
               <p class="mt-1 text-2xl font-black tracking-tight text-white">{{ phpM(cur.total_budget ?? 0) }}</p>
             </div>
-            <div class="rounded-2xl border border-white/12 bg-white/10 p-4 backdrop-blur">
+            <div class="rounded-2xl border border-[#1F7A58]/60 bg-[#075D3F] p-4 shadow-inner">
               <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#B7F4CE]/80">All Years Tracked</p>
               <p class="mt-1 text-2xl font-black tracking-tight text-white">{{ phpM(totalAcrossYears) }}</p>
             </div>

@@ -5,7 +5,7 @@
  * All year references are DYNAMIC — no hardcoded 2024/2025/2026.
  */
 import { computed } from 'vue'
-import { COLORS, FUNDS, CHART_SCALE_DEFAULTS } from '@/constants/Wfp'
+import { COLORS, FUNDS, CHART_SCALE_DEFAULTS } from '@/constants/wfp'
 
 // ── Shared tooltip formatter ────────────────────────────────────────
 const pesoLabel = (ctx) => `  ₱${Number(ctx.raw).toLocaleString('en-PH')}`
@@ -82,7 +82,7 @@ export function useBarChart(propsRef, year) {
 }
 
 /**
- * Budget trend line chart (total + Fund 101 + Fund 164).
+ * Budget trend line chart (total + Fund 101 + Fund 164 + Fund 161 + Fund 163).
  */
 export function useLineChart(propsRef) {
   const lineData = computed(() => {
@@ -128,29 +128,29 @@ export function useLineChart(propsRef) {
           borderWidth:          2,
           borderDash:           [3, 3],
         },
-                {
-          label: 'Fund 161',
-          data: ys.map(y => y.total_161 ?? 0),
-          borderColor: COLORS.mint,
-          backgroundColor: 'transparent',
-          fill: false,
-          tension: 0.35,
-          pointRadius: 4,
+        {
+          label:                'Fund 161',
+          data:                 ys.map(y => y.total_161 ?? 0),
+          borderColor:          COLORS.mint,
+          backgroundColor:      'transparent',
+          fill:                 false,
+          tension:              0.35,
+          pointRadius:          4,
           pointBackgroundColor: COLORS.mint,
-          borderWidth: 2,
-          borderDash: [6, 3],
+          borderWidth:          2,
+          borderDash:           [6, 3],
         },
         {
-          label: 'Fund 163',
-          data: ys.map(y => y.total_163 ?? 0),
-          borderColor: COLORS.teal,
-          backgroundColor: 'transparent',
-          fill: false,
-          tension: 0.35,
-          pointRadius: 4,
+          label:                'Fund 163',
+          data:                 ys.map(y => y.total_163 ?? 0),
+          borderColor:          COLORS.teal,
+          backgroundColor:      'transparent',
+          fill:                 false,
+          tension:              0.35,
+          pointRadius:          4,
           pointBackgroundColor: COLORS.teal,
-          borderWidth: 2,
-          borderDash: [2, 4],
+          borderWidth:          2,
+          borderDash:           [2, 4],
         },
       ],
     }

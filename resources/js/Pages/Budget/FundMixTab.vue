@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import SectionCard from '@/Components/SectionCard.vue'
 import { useFormatters } from '@/composables/useFormatters'
-import { FUNDS } from '@/constants/Wfp'
+import { FUNDS } from '@/constants/wfp'
 
 const props = defineProps({
   rows: { type: Array, default: () => [] },

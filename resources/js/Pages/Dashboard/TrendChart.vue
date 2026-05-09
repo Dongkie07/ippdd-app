@@ -15,7 +15,7 @@ defineProps({
 <template>
   <SectionCard
     title="Budget Trend Intelligence"
-    subtitle="Total budget · Fund 101 (GAA) · Fund 164 (Fiduciary)">
+    subtitle="Total budget · Fund 101 (GAA) · Fund 164 (Fiduciary) · Fund 161 · Fund 163">
     <div class="h-[230px]">
       <Line :data="lineData" :options="lineOpts" />
     </div>

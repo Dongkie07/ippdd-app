@@ -5,7 +5,7 @@
  */
 import { computed, ref, watch, watchEffect } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
-import { FUNDS as WFP_FUNDS } from '@/constants/Wfp'
+import { FUNDS as WFP_FUNDS } from '@/constants/wfp'
 
 export const DEPARTMENT_FUNDS = WFP_FUNDS.map((fund) => ({
   key: fund.dbField,

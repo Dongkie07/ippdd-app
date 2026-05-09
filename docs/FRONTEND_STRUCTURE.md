@@ -10,7 +10,7 @@ resources/js/
 ├── Layouts/                 # App shell / sidebar / page frame
 ├── Pages/                   # Inertia page entry files
 │   ├── Budget.vue           # Thin page wrapper for Department Breakdown
-│   ├── Budget/              # Budget page components + budget composable
+│   ├── Budget/              # Budget page UI components
 │   ├── Departments.vue      # Thin page wrapper for Manual Entry
 │   ├── Departments/         # Manual Entry components + CRUD composable
 │   └── Dashboard/           # Dashboard-only components
@@ -60,14 +60,13 @@ resources/js/Pages/Budget.vue
 For bugs in table data, fund mix, year comparison, or chart data, open:
 
 ```text
-resources/js/Pages/Budget/useBudgetBreakdown.js
+resources/js/composables/budget/useBudgetBreakdown.js
 ```
 
 For UI-only bugs, open:
 
 ```text
 Budget/BudgetTabs.vue
-Budget/BudgetTrendChart.vue
 Budget/RankingTab.vue
 Budget/FundMixTab.vue
 Budget/YearComparisonTab.vue
@@ -82,7 +81,7 @@ Use this pattern:
 
 ```text
 Page.vue                  # imports + layout + component wiring only
-Page/usePageName.js       # state, computed data, submit/delete actions
+composables/page/usePageName.js  # state, computed data, submit/delete actions
 Page/SmallComponent.vue   # one visible section of the UI
 ```
 
