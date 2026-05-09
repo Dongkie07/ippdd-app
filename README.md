@@ -363,3 +363,4 @@ The project already has `.gitignore`, but make sure these are ignored:
 /storage/logs/*.log
 /bootstrap/cache/*.php
 ```
+## Sample format file is included find the xlsx named :SAMPLE FORMAT XLSX FILE FOR UPLOADING.xlsx
