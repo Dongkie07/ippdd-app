@@ -2,6 +2,7 @@
 
 namespace App\Services\Wfp;
 
+use App\Services\Offices\OfficeRegistryService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
@@ -12,6 +13,10 @@ use RuntimeException;
  */
 class WfpImportPersister
 {
+    public function __construct(private readonly OfficeRegistryService $officeRegistry)
+    {
+    }
+
     public function save(array $rows, string $filename): array
     {
         $year = (int) ($rows[0]['year'] ?? 0);
@@ -67,7 +72,7 @@ class WfpImportPersister
     {
         $now = now();
 
-        return DB::table('wfp_submissions')->insertGetId([
+        $payload = [
             'year'            => $year,
             'no'              => $row['no'] ?? null,
             'department'      => $row['department'],
@@ -84,7 +89,14 @@ class WfpImportPersister
             'pi_count'        => $piCount,
             'created_at'      => $now,
             'updated_at'      => $now,
-        ]);
+        ];
+
+        if (Schema::hasColumn('wfp_submissions', 'office_id')) {
+            $office = $this->officeRegistry->findOrCreateFromName($row['department'], $year);
+            $payload['office_id'] = $office?->id;
+        }
+
+        return DB::table('wfp_submissions')->insertGetId($payload);
     }
 
     private function insertPerformanceIndicators(int $submissionId, array $row, array $pis, int $year): void

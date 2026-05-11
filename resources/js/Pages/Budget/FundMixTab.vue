@@ -88,7 +88,7 @@ const displayedRows = computed(() =>
           <tbody>
             <tr
               v-for="row in displayedRows"
-              :key="`${row.sheet_code || row.department}_${selectedYear}`"
+              :key="`${row.office_key || row.sheet_code || row.department}_${selectedYear}`"
               class="group border-b border-[#E6F2EA]/70 transition-colors hover:bg-[#ECFDF3]/70"
             >
               <td class="px-5 py-3 text-[12px] font-bold text-[#064E3B]">

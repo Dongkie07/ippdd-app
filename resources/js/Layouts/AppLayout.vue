@@ -19,6 +19,7 @@ const navItems = [
       { label: 'Upload WFP Data', href: '/upload', icon: 'upload' },
       { label: 'Dept. Breakdown', href: '/budget', icon: 'chart-bar' },
       { label: 'Manual Entry', href: '/departments', icon: 'edit' },
+      { label: 'Office Registry', href: '/offices', icon: 'building' },
     ]
   },
 ]
@@ -88,6 +89,9 @@ const isActive = (href) => {
               <svg v-if="item.icon === 'edit'" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                 <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
               </svg>
+              <svg v-if="item.icon === 'building'" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-3M9 9h1M9 13h1M9 17h1M14 13h1M14 17h1" />
+              </svg>
             </span>
             <span v-if="sidebarOpen" class="truncate text-[13px] font-bold">{{ item.label }}</span>
             <span v-if="sidebarOpen && isActive(item.href)" class="ml-auto h-2 w-2 rounded-full bg-[#168A4A]" />
@@ -152,8 +156,10 @@ const isActive = (href) => {
       </header>
 
       <!-- Page Content -->
-      <main class="relative flex-1 overflow-y-auto p-6">
-        <slot />
+      <main class="ippdd-scrollbar relative flex-1 overflow-y-auto p-6">
+        <div class="page-shell">
+          <slot />
+        </div>
       </main>
     </div>
   </div>

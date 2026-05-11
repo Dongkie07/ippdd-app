@@ -4,7 +4,10 @@
  * Thin page component only. Data shaping lives in composables/budget/useBudgetBreakdown.js,
  * while each tab owns its own table/chart UI.
  */
+import { computed } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import PageHero from '@/Components/PageHero.vue'
+import MiniMetric from '@/Components/MiniMetric.vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -23,6 +26,7 @@ import RankingTab from './Budget/RankingTab.vue'
 import YearComparisonTab from './Budget/YearComparisonTab.vue'
 import YearSummaryCards from './Budget/YearSummaryCards.vue'
 import { useBudgetBreakdown } from '@/composables/budget/useBudgetBreakdown'
+import { useFormatters } from '@/composables/useFormatters'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend)
 
@@ -58,6 +62,11 @@ const {
   trendColor,
   trendBg,
 } = useBudgetBreakdown(props)
+
+const { phpM } = useFormatters()
+const latestTotal = computed(() => latestYearRef.value ? (yearTotalsRef.value[latestYearRef.value] ?? 0) : 0)
+const officeCount = computed(() => parentRows.value.length)
+const trackedYearsLabel = computed(() => yearsRef.value.length ? `FY ${yearsRef.value[0]}–${yearsRef.value.at(-1)}` : 'No years yet')
 </script>
 
 <template>
@@ -69,6 +78,35 @@ const {
     </template>
 
     <div class="space-y-5">
+      <PageHero
+        eyebrow="Budget Intelligence"
+        title="Interactive department breakdown with cleaner comparisons"
+        subtitle="Review ranking, fund mix, and year-over-year movement from one page. It groups renamed offices by stable identity, because graphs should not panic every time an office gets a new name."
+      >
+        <template #stats>
+          <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#DDFBE8]/80">Latest Year</p>
+              <p class="mt-1 text-2xl font-black text-white">FY {{ latestYearRef ?? '—' }}</p>
+            </div>
+            <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#DDFBE8]/80">Latest Budget</p>
+              <p class="mt-1 text-2xl font-black text-white">{{ phpM(latestTotal) }}</p>
+            </div>
+            <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-[#DDFBE8]/80">Tracked Offices</p>
+              <p class="mt-1 text-2xl font-black text-white">{{ officeCount }}</p>
+            </div>
+          </div>
+        </template>
+      </PageHero>
+
+      <div class="grid gap-4 md:grid-cols-3">
+        <MiniMetric label="Tracked Range" :value="trackedYearsLabel" note="Available fiscal years" />
+        <MiniMetric label="Active Tab" :value="tabs.find((tab) => tab.id === activeTab)?.label ?? 'Budget Ranking'" note="Current analysis mode" />
+        <MiniMetric label="Matched Rows" :value="filteredTree.length" note="Visible in current filters" />
+      </div>
+
       <YearSummaryCards :yearTotals="yearTotalsRef" :years="yearsRef" />
 
       <BudgetTabs v-model:activeTab="activeTab" :tabs="tabs" />

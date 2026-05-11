@@ -163,6 +163,12 @@ const sortedRows = computed(() => {
                   <span class="font-semibold text-[#0D2137] group-hover:text-[#1A5276] transition-colors">
                     {{ d.department }}
                   </span>
+                  <span
+                    v-if="d.current_name && d.current_name !== d.department"
+                    class="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600"
+                  >
+                    latest: {{ d.current_name.length > 24 ? `${d.current_name.slice(0, 23)}…` : d.current_name }}
+                  </span>
                   <span v-if="d.children?.length"
                     class="text-[9px] font-bold text-blue-400 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-full">
                     {{ d.children.length }} sub

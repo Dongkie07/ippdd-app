@@ -2,11 +2,10 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WfpImportController;
-use App\Http\Controllers\ExportController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\OfficeController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // ── Dashboard ─────────────────────────────────────────────────
 Route::get('/', [DashboardController::class, 'index']);
@@ -23,16 +22,16 @@ Route::post('/departments',                 [DepartmentController::class, 'store
 Route::put('/departments/{id}',             [DepartmentController::class, 'update']);
 Route::delete('/departments/{id}',          [DepartmentController::class, 'destroy']);
 
+
+// ── Office registry / rename history ───────────────────────────────
+Route::get('/offices', [OfficeController::class, 'index']);
+Route::post('/offices/sync', [OfficeController::class, 'sync']);
+Route::post('/offices', [OfficeController::class, 'store']);
+Route::put('/offices/{office}', [OfficeController::class, 'update']);
+Route::post('/offices/{office}/histories', [OfficeController::class, 'storeHistory']);
+Route::delete('/office-histories/{history}', [OfficeController::class, 'destroyHistory']);
+
 // ── Upload ────────────────────────────────────────────────────
 Route::get('/upload',          [WfpImportController::class, 'index']);
 Route::post('/upload/parse',   [WfpImportController::class, 'parse']);
 Route::post('/upload/confirm', [WfpImportController::class, 'confirm']);
-
-// ── Export ────────────────────────────────────────────────────
-Route::get('/export/excel', [ExportController::class, 'excel']);
-Route::get('/export/csv',   [ExportController::class, 'csv']);
-
-// ── Stub pages ────────────────────────────────────────────────
-Route::get('/reports',  fn() => Inertia::render('Reports'));
-Route::get('/users',    fn() => Inertia::render('Users'));
-Route::get('/settings', fn() => Inertia::render('Settings'));

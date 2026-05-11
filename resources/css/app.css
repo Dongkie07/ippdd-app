@@ -2,3 +2,119 @@
 
 @import "tailwindcss";
 
+@keyframes pageFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes softPulse {
+  0%, 100% { transform: scale(1); opacity: .75; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes shimmerLine {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(120%); }
+}
+
+:root {
+  --ippdd-deep: #064E3B;
+  --ippdd-green: #168A4A;
+  --ippdd-mint: #53D28C;
+  --ippdd-soft: #ECFDF3;
+  --ippdd-border: #DDEDE3;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #F4F8F5;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(22, 138, 74, .14);
+  border-color: rgba(22, 138, 74, .55);
+}
+
+.page-shell {
+  animation: pageFadeUp 360ms ease both;
+}
+
+.page-hero {
+  animation: pageFadeUp 420ms ease both;
+}
+
+.interactive-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.interactive-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.65) 45%, transparent 70%);
+  transform: translateX(-120%);
+  opacity: 0;
+}
+
+.interactive-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(22, 138, 74, .24);
+  box-shadow: 0 18px 46px rgba(6, 78, 59, .13);
+}
+
+.interactive-card:hover::before {
+  animation: shimmerLine 900ms ease;
+  opacity: 1;
+}
+
+.soft-pulse {
+  animation: softPulse 2.8s ease-in-out infinite;
+}
+
+.ippdd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border-radius: 999px;
+  border: 1px solid var(--ippdd-border);
+  background: #fff;
+  padding: .35rem .65rem;
+  font-size: .68rem;
+  font-weight: 800;
+  color: var(--ippdd-deep);
+}
+
+.ippdd-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.ippdd-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(6, 78, 59, .18);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+.ippdd-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}

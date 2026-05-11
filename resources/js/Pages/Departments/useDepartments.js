@@ -1,11 +1,11 @@
 /**
  * useDepartments.js
- * Keeps Manual Entry page behavior away from the template.
- * Future OJT humans: debug actions here first, UI components second.
+ * Manual Entry behavior stays here so the Vue page remains small.
  */
 import { computed, ref, watch, watchEffect } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import { FUNDS as WFP_FUNDS } from '@/constants/wfp'
+import { resolveOfficeNameForYear } from '@/composables/offices/useOfficeNameHistory'
 
 export const DEPARTMENT_FUNDS = WFP_FUNDS.map((fund) => ({
   key: fund.dbField,
@@ -13,8 +13,11 @@ export const DEPARTMENT_FUNDS = WFP_FUNDS.map((fund) => ({
   color: fund.color,
 }))
 
+const FEEDBACK_TIMEOUT_MS = 4000
+
 const BLANK_FORM = {
   id: null,
+  office_id: '',
   year: null,
   department: '',
   sheet_code: '',
@@ -30,6 +33,7 @@ const BLANK_FORM = {
 
 const normalizeDepartment = (row, activeYear) => ({
   id: row.id,
+  office_id: row.office_id ?? '',
   year: row.year ?? activeYear,
   department: row.department ?? '',
   sheet_code: row.sheet_code ?? '',
@@ -50,45 +54,38 @@ const collectErrors = (errors) => {
 
 export function useDepartments(props) {
   const page = usePage()
-
   const activeYear = ref(props.years?.[0] ?? null)
   const saving = ref(false)
   const feedback = ref(null)
   const confirmDelete = ref(null)
-
   const form = ref({ ...BLANK_FORM })
   const showForm = ref(false)
   const formMode = ref('add')
-
   const showYearForm = ref(false)
-  const newYearForm = ref({
-    year: new Date().getFullYear() + 1,
-    copy_from: '',
-  })
+  const newYearForm = ref({ year: new Date().getFullYear() + 1, copy_from: '' })
 
   const years = computed(() => props.years ?? [])
   const rows = computed(() => props.deptsByYear?.[activeYear.value] ?? [])
+  const offices = computed(() => props.offices ?? [])
   const parentOptions = computed(() => rows.value.filter((row) => !row.parent_dept))
-
   const topLevelRows = computed(() => rows.value.filter((row) => !row.parent_dept))
-  const totalBudget = computed(() =>
-    topLevelRows.value.reduce((sum, row) => sum + (row.budget_total ?? 0), 0),
-  )
+  const totalBudget = computed(() => topLevelRows.value.reduce((sum, row) => sum + (row.budget_total ?? 0), 0))
 
-  const fundTotals = computed(() =>
-    DEPARTMENT_FUNDS.map((fund) => ({
-      ...fund,
-      value: topLevelRows.value.reduce((sum, row) => sum + (row[fund.key] ?? 0), 0),
-    })),
-  )
+  const fundTotals = computed(() => DEPARTMENT_FUNDS.map((fund) => ({
+    ...fund,
+    value: topLevelRows.value.reduce((sum, row) => sum + (row[fund.key] ?? 0), 0),
+  })))
 
-  const formTotal = computed(() =>
-    DEPARTMENT_FUNDS.reduce((sum, fund) => sum + (parseFloat(form.value[fund.key]) || 0), 0),
-  )
+  const formTotal = computed(() => DEPARTMENT_FUNDS.reduce((sum, fund) => (
+    sum + (parseFloat(form.value[fund.key]) || 0)
+  ), 0))
+
+  const selectedOffice = computed(() => offices.value.find((office) => office.id === Number(form.value.office_id)))
+  const selectedOfficeHistoricalName = computed(() => resolveOfficeNameForYear(selectedOffice.value, form.value.year))
 
   const toast = (type, message) => {
     feedback.value = { type, message }
-    window.setTimeout(() => { feedback.value = null }, 4000)
+    window.setTimeout(() => { feedback.value = null }, FEEDBACK_TIMEOUT_MS)
   }
 
   watchEffect(() => {
@@ -109,7 +106,6 @@ export function useDepartments(props) {
 
   const submit = (method, url, data = null) => new Promise((resolve) => {
     saving.value = true
-
     router[method](url, data, {
       preserveScroll: true,
       onSuccess: () => resolve({ success: true }),
@@ -120,7 +116,6 @@ export function useDepartments(props) {
 
   const destroy = (url) => new Promise((resolve) => {
     saving.value = true
-
     router.delete(url, {
       preserveScroll: true,
       onSuccess: () => resolve({ success: true }),
@@ -139,6 +134,15 @@ export function useDepartments(props) {
     form.value = normalizeDepartment(row, activeYear.value)
     formMode.value = 'edit'
     showForm.value = true
+  }
+
+  const selectOffice = (officeId) => {
+    form.value.office_id = officeId || ''
+
+    if (!officeId) return
+
+    const office = offices.value.find((item) => item.id === Number(officeId))
+    form.value.department = resolveOfficeNameForYear(office, form.value.year)
   }
 
   const closeForm = () => { showForm.value = false }
@@ -221,13 +225,17 @@ export function useDepartments(props) {
     newYearForm,
     years,
     rows,
+    offices,
     parentOptions,
     totalBudget,
     fundTotals,
     formTotal,
+    selectedOffice,
+    selectedOfficeHistoricalName,
     funds: DEPARTMENT_FUNDS,
     openAdd,
     openEdit,
+    selectOffice,
     closeForm,
     openYearForm,
     closeYearForm,

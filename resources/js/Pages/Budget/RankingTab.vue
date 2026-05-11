@@ -86,7 +86,7 @@ const trendBg = (value) => value == null ? '' : value > 0 ? 'bg-emerald-50 borde
         </thead>
 
         <tbody>
-          <template v-for="(row, index) in filteredTree" :key="row.department + (row._isChild ? '_child' : '')">
+          <template v-for="(row, index) in filteredTree" :key="(row.office_key || row.department) + (row._isChild ? '_child' : '')">
             <tr
               v-if="!row._isChild"
               @click="row._hasChildren ? emit('toggle', row.department) : null"

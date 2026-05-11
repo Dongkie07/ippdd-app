@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Budget extends Model
 {
@@ -11,9 +12,13 @@ class Budget extends Model
 
     protected $guarded = [];
 
-    // A Budget belongs to a specific Department
-    public function department()
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function office(): BelongsTo
+    {
+        return $this->belongsTo(Office::class);
     }
 }

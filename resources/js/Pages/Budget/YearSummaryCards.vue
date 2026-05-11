@@ -23,11 +23,11 @@ const percentOfTotal = (summary, fundKey) => {
     <div
       v-for="year in years"
       :key="year"
-      class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4"
+      class="interactive-card rounded-2xl border border-[#DDEDE3] bg-white p-4 shadow-[0_12px_32px_rgba(6,78,59,0.08)]"
     >
       <div class="flex items-center justify-between mb-3">
-        <span class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-gray-400">FY {{ year }}</span>
-        <span class="text-[10px] font-bold text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-2 py-0.5">
+        <span class="text-[10px] font-black uppercase tracking-[0.14em] text-[#8FA79B]">FY {{ year }}</span>
+        <span class="rounded-full border border-[#DDEDE3] bg-[#F8FCF9] px-2 py-0.5 text-[10px] font-black text-[#64746B]">
           {{ yearTotals[year]?.dept_count ?? 0 }} offices
         </span>
       </div>
@@ -40,7 +40,7 @@ const percentOfTotal = (summary, fundKey) => {
         <div v-for="fund in FUNDS" :key="fund.key" class="flex items-center gap-2">
           <div class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ background: fund.color }" />
           <span class="text-[10px] text-gray-400 w-8">{{ fund.key.toUpperCase() }}</span>
-          <div class="flex-1 bg-gray-100 rounded-full h-1 overflow-hidden">
+          <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-[#E6F2EA]">
             <div
               class="h-full rounded-full"
               :style="{

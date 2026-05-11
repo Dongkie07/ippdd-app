@@ -41,9 +41,21 @@ export function useBudgetBreakdown(props) {
 
   const { yoyData: yoyChartData, yoyOpts: yoyChartOpts } = useYoyChart(yoyRowsRef, yearsRef)
 
-  const findDepartmentInYear = (departmentName, year) => {
-    const normalized = departmentName.toUpperCase()
-    return (props.allByYear?.[year] ?? []).find((row) => row.department.toUpperCase() === normalized) ?? null
+  const officeKeyOf = (rowOrName) => {
+    if (!rowOrName) return ''
+    if (typeof rowOrName === 'string') return rowOrName.toUpperCase().trim().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+
+    return (rowOrName.office_key || rowOrName.canonical_name || rowOrName.department || '')
+      .toString()
+      .toUpperCase()
+      .trim()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+  }
+
+  const findDepartmentInYear = (officeOrDepartment, year) => {
+    const key = officeKeyOf(officeOrDepartment)
+    return (props.allByYear?.[year] ?? []).find((row) => officeKeyOf(row) === key) ?? null
   }
 
   const enrichParent = (row) => {
@@ -53,7 +65,7 @@ export function useBudgetBreakdown(props) {
     const yearFields = {}
 
     years.forEach((year) => {
-      const yearRow = findDepartmentInYear(row.department, year)
+      const yearRow = findDepartmentInYear(row, year)
       yearFields[`budget_${year}`] = yearRow?.budget_total ?? row[`budget_${year}`] ?? null
       yearFields[`own_${year}`] = yearRow?.own_budget ?? row[`budget_${year}`] ?? 0
       yearFields[`f101_${year}`] = yearRow?.budget_fund_101 ?? row[`f101_${year}`] ?? 0
@@ -64,7 +76,7 @@ export function useBudgetBreakdown(props) {
 
     let children = []
     for (let i = years.length - 1; i >= 0; i -= 1) {
-      const yearRow = findDepartmentInYear(row.department, years[i])
+      const yearRow = findDepartmentInYear(row, years[i])
       if (yearRow?.children?.length) {
         children = yearRow.children
         break
@@ -110,12 +122,14 @@ export function useBudgetBreakdown(props) {
       const allChildren = new Map()
 
       years.forEach((year) => {
-        const yearRow = findDepartmentInYear(parent.department, year)
+        const yearRow = findDepartmentInYear(parent, year)
 
         ;(yearRow?.children ?? []).forEach((child) => {
-          const key = child.department.toUpperCase()
+          const key = officeKeyOf(child)
           const existing = allChildren.get(key) ?? {
             department: child.department,
+            office_key: child.office_key ?? key,
+            canonical_name: child.canonical_name ?? child.department,
             sheet_code: child.sheet_code ?? '',
           }
 

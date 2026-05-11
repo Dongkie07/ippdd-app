@@ -66,7 +66,10 @@ const rows = computed(() => {
   const dedupMap = new Map()
   ;(props.allDepts ?? [])
     .filter(d => d.year === year.value)
-    .forEach(d => { if (!dedupMap.has(d.department)) dedupMap.set(d.department, d) })
+    .forEach(d => {
+      const key = d.office_key ?? d.department
+      if (!dedupMap.has(key)) dedupMap.set(key, d)
+    })
   return applySortTo(Array.from(dedupMap.values()))
 })
 

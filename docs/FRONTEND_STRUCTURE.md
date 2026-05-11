@@ -13,6 +13,7 @@ resources/js/
 │   ├── Budget/              # Budget page UI components
 │   ├── Departments.vue      # Thin page wrapper for Manual Entry
 │   ├── Departments/         # Manual Entry components + CRUD composable
+│   ├── Offices.vue          # Office registry with rename history
 │   └── Dashboard/           # Dashboard-only components
 ├── composables/             # Reusable logic hooks: formatters, charts, sorting, uploads
 └── constants/               # Shared constants like fund colors and labels
@@ -72,6 +73,18 @@ Budget/FundMixTab.vue
 Budget/YearComparisonTab.vue
 Budget/YearSummaryCards.vue
 ```
+
+## Available supervisor-facing pages
+
+The visible sidebar intentionally stays focused on the core workflow:
+
+- Executive Dashboard
+- Upload WFP Data
+- Dept. Breakdown
+- Manual Entry
+- Office Registry
+
+Reports & Export and Users & Roles were removed from navigation and routes to keep the system scope cleaner for the current defense version.
 
 ## Rule for future changes
 

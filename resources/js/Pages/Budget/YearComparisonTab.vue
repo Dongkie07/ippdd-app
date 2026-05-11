@@ -57,7 +57,7 @@ const changeKey = (fromYear, toYear) => `chg_${String(fromYear).slice(2)}_${Stri
           <tbody>
             <tr
               v-for="row in rows"
-              :key="row.sheet_code || row.department"
+              :key="row.office_key || row.sheet_code || row.department"
               class="border-b border-gray-50 hover:bg-[#064E3B]/[0.02] transition-colors"
             >
               <td class="px-5 py-3 font-semibold text-[#064E3B] text-[12px]">{{ row.department }}</td>
